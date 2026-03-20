@@ -195,6 +195,10 @@
 
   function startAll() {
     if (!settings) return;
+
+    // Keep extension toggles available regardless of nav state.
+    injectFeatureToggles();
+
     if (settings.autoSkip && settings.autoSkip.enabled) {
       startAutoSkip();
     }
@@ -284,14 +288,6 @@
       nextButton.remove();
       nextButton = null;
     }
-    if (autoSkipToggle) {
-      autoSkipToggle.remove();
-      autoSkipToggle = null;
-    }
-    if (episodeNavToggle) {
-      episodeNavToggle.remove();
-      episodeNavToggle = null;
-    }
     lastNextHref = null;
     lastPrevHref = null;
   }
@@ -302,7 +298,6 @@
     });
 
     navObserver.observe(document.body, { childList: true, subtree: true });
-    injectFeatureToggles();
     scheduleNavUpdate();
   }
 
