@@ -26,16 +26,17 @@ const DEFAULT_ADVANCED = {
   navDebounceMs: 400,
   toastEnabled: true,
   actionDelayMs: 1500,
-  navActionDelayMs: 1500,
+  navActionDelayMs: 1000,
   toastDurationMs: 2500
 };
 
 const DEFAULT_THEME = {
+  themePreset: "crunchy-classic",
   primaryColor: "#f47521",
   onPrimaryColor: "#ffffff",
   hoverBgColorHex: "#f47521",
-  hoverBgOpacity: 0.15,
-  hoverBgColor: "rgba(244, 117, 33, 0.15)",
+  hoverBgOpacity: 0.25,
+  hoverBgColor: "rgba(244, 117, 33, 0.5)",
   disabledOpacity: "0.5",
   buttonPaddingX: "12px",
   buttonHoverTransitionMs: "200",
@@ -44,13 +45,44 @@ const DEFAULT_THEME = {
   toastInset: "20px",
   toastAnimationMs: 300,
   toastPadding: "12px 16px",
-  toastBorderRadius: "4px",
+  toastBorderRadius: "8px",
   toastFontSize: "13px",
   toastFontWeight: "600",
   toastBoxShadow: "0 4px 12px rgba(0,0,0,0.5)",
   toastProgressTrackColor: "rgba(255,255,255,0.25)",
   toastProgressBarColor: "rgba(255,255,255,0.95)",
   toastGap: "8px"
+};
+
+const THEME_PRESETS = {
+  "crunchy-classic": {
+    primaryColor: "#f47521",
+    onPrimaryColor: "#ffffff",
+    hoverBgColorHex: "#f47521",
+    hoverBgOpacity: 0.15,
+    disabledOpacity: "0.5"
+  },
+  "ocean-arc": {
+    primaryColor: "#118ab2",
+    onPrimaryColor: "#ffffff",
+    hoverBgColorHex: "#118ab2",
+    hoverBgOpacity: 0.18,
+    disabledOpacity: "0.5"
+  },
+  "emerald-pop": {
+    primaryColor: "#0fa968",
+    onPrimaryColor: "#ffffff",
+    hoverBgColorHex: "#0fa968",
+    hoverBgOpacity: 0.18,
+    disabledOpacity: "0.5"
+  },
+  "ruby-night": {
+    primaryColor: "#d64545",
+    onPrimaryColor: "#ffffff",
+    hoverBgColorHex: "#d64545",
+    hoverBgOpacity: 0.18,
+    disabledOpacity: "0.5"
+  }
 };
 
 function $(id) {
@@ -100,6 +132,46 @@ function applyThemeToPopup(theme) {
   root.style.setProperty("--toggle-on", primary);
   root.style.setProperty("--theme-hover-bg", hoverBg);
   root.style.setProperty("--theme-on-primary", onPrimary);
+}
+
+function getSelectedThemePresetKey() {
+  const selected = document.querySelector("input[name='themePreset']:checked");
+  return selected?.value || DEFAULT_THEME.themePreset;
+}
+
+function findThemePresetKey(theme) {
+  const key = theme?.themePreset;
+  if (key && THEME_PRESETS[key]) return key;
+
+  const primary = (theme?.primaryColor || "").toLowerCase();
+  const hoverHex = (theme?.hoverBgColorHex || "").toLowerCase();
+
+  const match = Object.entries(THEME_PRESETS).find(([, preset]) => {
+    return (
+      preset.primaryColor.toLowerCase() === primary &&
+      preset.hoverBgColorHex.toLowerCase() === hoverHex
+    );
+  });
+
+  return match ? match[0] : DEFAULT_THEME.themePreset;
+}
+
+function resolveThemeFromPreset(baseTheme) {
+  const presetKey = getSelectedThemePresetKey();
+  const preset = THEME_PRESETS[presetKey] || THEME_PRESETS[DEFAULT_THEME.themePreset];
+
+  const resolved = {
+    ...baseTheme,
+    themePreset: presetKey,
+    primaryColor: preset.primaryColor,
+    onPrimaryColor: preset.onPrimaryColor,
+    hoverBgColorHex: preset.hoverBgColorHex,
+    hoverBgOpacity: preset.hoverBgOpacity,
+    disabledOpacity: preset.disabledOpacity
+  };
+
+  resolved.hoverBgColor = toRgbaString(resolved.hoverBgColorHex, resolved.hoverBgOpacity);
+  return resolved;
 }
 
 function syncToastPositionControls() {
@@ -157,12 +229,11 @@ function loadForm(settings) {
   if ($("toastDurationMs")) $("toastDurationMs").value = adv.toastDurationMs || 2500;
 
   const theme = settings.theme || {};
-  if ($("primaryColor")) $("primaryColor").value = theme.primaryColor || "#f47521";
-  if ($("onPrimaryColor")) $("onPrimaryColor").value = theme.onPrimaryColor || "#ffffff";
-  const hoverParsed = parseRgbaToHexOpacity(theme.hoverBgColor || "rgba(244, 117, 33, 0.15)");
-  if ($("hoverBgColorHex")) $("hoverBgColorHex").value = theme.hoverBgColorHex || hoverParsed.hex;
-  if ($("hoverBgOpacity")) $("hoverBgOpacity").value = String(theme.hoverBgOpacity ?? hoverParsed.opacity);
-  if ($("disabledOpacity")) $("disabledOpacity").value = theme.disabledOpacity || "0.5";
+  const themePreset = findThemePresetKey(theme);
+  const presetRadio = document.querySelector(`input[name='themePreset'][value='${themePreset}']`);
+  if (presetRadio) {
+    presetRadio.checked = true;
+  }
   if ($("buttonPaddingX")) $("buttonPaddingX").value = theme.buttonPaddingX || "12px";
   if ($("buttonHoverTransitionMs")) $("buttonHoverTransitionMs").value = theme.buttonHoverTransitionMs || "200";
   if ($("iconSize")) $("iconSize").value = theme.iconSize || "24px";
@@ -178,11 +249,29 @@ function loadForm(settings) {
   if ($("toastProgressBarColor")) $("toastProgressBarColor").value = theme.toastProgressBarColor || "rgba(255,255,255,0.95)";
   if ($("toastGap")) $("toastGap").value = theme.toastGap || "8px";
 
-  applyThemeToPopup(theme);
+  const resolvedTheme = resolveThemeFromPreset({ ...DEFAULT_THEME, ...theme });
+  applyThemeToPopup(resolvedTheme);
   syncToastPositionControls();
 }
 
 function readForm() {
+  const resolvedTheme = resolveThemeFromPreset({
+    buttonPaddingX: $("buttonPaddingX")?.value || "12px",
+    buttonHoverTransitionMs: $("buttonHoverTransitionMs")?.value || "200",
+    iconSize: $("iconSize")?.value || "24px",
+    toastPositionPreset: $("toastPositionPreset")?.value || "bottom-left",
+    toastInset: $("toastInset")?.value || "20px",
+    toastAnimationMs: parseNumber($("toastAnimationMs")?.value, 300),
+    toastPadding: $("toastPadding")?.value || "12px 16px",
+    toastBorderRadius: $("toastBorderRadius")?.value || "4px",
+    toastFontSize: $("toastFontSize")?.value || "13px",
+    toastFontWeight: $("toastFontWeight")?.value || "600",
+    toastBoxShadow: $("toastBoxShadow")?.value || "0 4px 12px rgba(0,0,0,0.5)",
+    toastProgressTrackColor: $("toastProgressTrackColor")?.value || "rgba(255,255,255,0.25)",
+    toastProgressBarColor: $("toastProgressBarColor")?.value || "rgba(255,255,255,0.95)",
+    toastGap: $("toastGap")?.value || "8px"
+  });
+
   return {
     autoSkip: {
       enabled: $("autoSkipEnabled").checked,
@@ -205,31 +294,7 @@ function readForm() {
       navActionDelayMs: parseNumber($("navActionDelayMs")?.value, 1500),
       toastDurationMs: parseNumber($("toastDurationMs")?.value, 2500)
     },
-    theme: {
-      primaryColor: $("primaryColor")?.value || "#f47521",
-      onPrimaryColor: $("onPrimaryColor")?.value || "#ffffff",
-      hoverBgColorHex: $("hoverBgColorHex")?.value || "#f47521",
-      hoverBgOpacity: parseNumber($("hoverBgOpacity")?.value, 0.15),
-      hoverBgColor: toRgbaString(
-        $("hoverBgColorHex")?.value || "#f47521",
-        parseNumber($("hoverBgOpacity")?.value, 0.15)
-      ),
-      disabledOpacity: $("disabledOpacity")?.value || "0.5",
-      buttonPaddingX: $("buttonPaddingX")?.value || "12px",
-      buttonHoverTransitionMs: $("buttonHoverTransitionMs")?.value || "200",
-      iconSize: $("iconSize")?.value || "24px",
-      toastPositionPreset: $("toastPositionPreset")?.value || "bottom-left",
-      toastInset: $("toastInset")?.value || "20px",
-      toastAnimationMs: parseNumber($("toastAnimationMs")?.value, 300),
-      toastPadding: $("toastPadding")?.value || "12px 16px",
-      toastBorderRadius: $("toastBorderRadius")?.value || "4px",
-      toastFontSize: $("toastFontSize")?.value || "13px",
-      toastFontWeight: $("toastFontWeight")?.value || "600",
-      toastBoxShadow: $("toastBoxShadow")?.value || "0 4px 12px rgba(0,0,0,0.5)",
-      toastProgressTrackColor: $("toastProgressTrackColor")?.value || "rgba(255,255,255,0.25)",
-      toastProgressBarColor: $("toastProgressBarColor")?.value || "rgba(255,255,255,0.95)",
-      toastGap: $("toastGap")?.value || "8px"
-    }
+    theme: resolvedTheme
   };
 }
 
@@ -246,22 +311,10 @@ document.addEventListener("DOMContentLoaded", () => {
     loadForm(settings);
   });
 
-  const themeInputs = [
-    "primaryColor",
-    "onPrimaryColor",
-    "hoverBgColorHex",
-    "hoverBgOpacity"
-  ];
-  themeInputs.forEach((id) => {
-    const el = $(id);
-    if (!el) return;
-    el.addEventListener("input", () => {
-      applyThemeToPopup({
-        primaryColor: $("primaryColor")?.value || "#f47521",
-        onPrimaryColor: $("onPrimaryColor")?.value || "#ffffff",
-        hoverBgColorHex: $("hoverBgColorHex")?.value || "#f47521",
-        hoverBgOpacity: parseNumber($("hoverBgOpacity")?.value, 0.15)
-      });
+  document.querySelectorAll("input[name='themePreset']").forEach((input) => {
+    input.addEventListener("change", () => {
+      const nextTheme = resolveThemeFromPreset(readForm().theme);
+      applyThemeToPopup(nextTheme);
     });
   });
 
@@ -308,11 +361,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   $("resetTheme")?.addEventListener("click", () => {
     const t = DEFAULT_THEME;
-    if ($("primaryColor")) $("primaryColor").value = t.primaryColor;
-    if ($("onPrimaryColor")) $("onPrimaryColor").value = t.onPrimaryColor;
-    if ($("hoverBgColorHex")) $("hoverBgColorHex").value = t.hoverBgColorHex;
-    if ($("hoverBgOpacity")) $("hoverBgOpacity").value = String(t.hoverBgOpacity);
-    if ($("disabledOpacity")) $("disabledOpacity").value = t.disabledOpacity;
+    const presetRadio = document.querySelector(`input[name='themePreset'][value='${t.themePreset}']`);
+    if (presetRadio) {
+      presetRadio.checked = true;
+    }
     if ($("buttonPaddingX")) $("buttonPaddingX").value = t.buttonPaddingX;
     if ($("buttonHoverTransitionMs")) $("buttonHoverTransitionMs").value = t.buttonHoverTransitionMs;
     if ($("iconSize")) $("iconSize").value = t.iconSize;
@@ -328,7 +380,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if ($("toastProgressBarColor")) $("toastProgressBarColor").value = t.toastProgressBarColor;
     if ($("toastGap")) $("toastGap").value = t.toastGap;
 
-    applyThemeToPopup(t);
+    applyThemeToPopup(resolveThemeFromPreset(t));
     syncToastPositionControls();
   });
 });

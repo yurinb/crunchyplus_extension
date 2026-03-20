@@ -12,6 +12,135 @@
   </header>
 
   <main>
+    <section class="feature-block" id="section-theme">
+      <div class="feature-header">
+        <div class="feature-title">
+          <span class="feature-icon">🎨</span>
+          <span>Theme Settings</span>
+          <span class="info-icon" title="Choose one of the predefined visual color themes.">?</span>
+        </div>
+      </div>
+
+      <div class="collapsible-section" id="themeConfig" style="display:none;">
+        <div class="config-label">Color Themes</div>
+        <div class="theme-cards" id="themePresetCards">
+          <label class="theme-card" for="themePresetCrunchy">
+            <input type="radio" name="themePreset" id="themePresetCrunchy" value="crunchy-classic" checked />
+            <span class="theme-card-preview">
+              <span class="swatch" style="--swatch:#f47521"></span>
+              <span class="swatch" style="--swatch:#ffffff"></span>
+              <span class="swatch" style="--swatch:rgba(244,117,33,0.15)"></span>
+            </span>
+            <span class="theme-card-name">Crunchy Classic</span>
+          </label>
+
+          <label class="theme-card" for="themePresetOcean">
+            <input type="radio" name="themePreset" id="themePresetOcean" value="ocean-arc" />
+            <span class="theme-card-preview">
+              <span class="swatch" style="--swatch:#118ab2"></span>
+              <span class="swatch" style="--swatch:#ffffff"></span>
+              <span class="swatch" style="--swatch:rgba(17,138,178,0.18)"></span>
+            </span>
+            <span class="theme-card-name">Ocean Arc</span>
+          </label>
+
+          <label class="theme-card" for="themePresetEmerald">
+            <input type="radio" name="themePreset" id="themePresetEmerald" value="emerald-pop" />
+            <span class="theme-card-preview">
+              <span class="swatch" style="--swatch:#0fa968"></span>
+              <span class="swatch" style="--swatch:#ffffff"></span>
+              <span class="swatch" style="--swatch:rgba(15,169,104,0.18)"></span>
+            </span>
+            <span class="theme-card-name">Emerald Pop</span>
+          </label>
+
+          <label class="theme-card" for="themePresetRuby">
+            <input type="radio" name="themePreset" id="themePresetRuby" value="ruby-night" />
+            <span class="theme-card-preview">
+              <span class="swatch" style="--swatch:#d64545"></span>
+              <span class="swatch" style="--swatch:#ffffff"></span>
+              <span class="swatch" style="--swatch:rgba(214,69,69,0.18)"></span>
+            </span>
+            <span class="theme-card-name">Ruby Night</span>
+          </label>
+        </div>
+
+        <div class="config-label" style="margin-top: 14px;">Buttons & Icons</div>
+        <div class="advanced-grid">
+          <div class="advanced-row">
+            <label>Button Horizontal Padding</label>
+            <input type="text" id="buttonPaddingX" placeholder="12px" />
+          </div>
+          <div class="advanced-row">
+            <label>Hover Transition (ms)</label>
+            <input type="number" id="buttonHoverTransitionMs" min="50" max="1000" step="50" />
+          </div>
+          <div class="advanced-row">
+            <label>Icon Size</label>
+            <input type="text" id="iconSize" placeholder="24px" />
+          </div>
+        </div>
+
+        <div class="config-label" style="margin-top: 14px;">Toast Layout & Effects</div>
+        <div class="advanced-grid">
+          <div class="advanced-row">
+            <label>Toast Position</label>
+            <select id="toastPositionPreset">
+              <option value="top-left">◤ Top Left</option>
+              <option value="top-right">Top Right ◥</option>
+              <option value="bottom-left" selected>◣ Bottom Left</option>
+              <option value="bottom-right">Bottom Right ◢</option>
+              <option value="on-action">◎ On Action Element</option>
+            </select>
+          </div>
+          <div class="advanced-row">
+            <label>Toast Inset</label>
+            <input type="text" id="toastInset" placeholder="20px" />
+          </div>
+          <div class="advanced-row">
+            <label>Animation Duration (ms)</label>
+            <input type="number" id="toastAnimationMs" min="100" max="1000" step="50" />
+          </div>
+          <div class="advanced-row">
+            <label>Toast Gap</label>
+            <input type="text" id="toastGap" placeholder="8px" />
+          </div>
+          <div class="advanced-row">
+            <label>Toast Padding</label>
+            <input type="text" id="toastPadding" placeholder="12px 16px" />
+          </div>
+          <div class="advanced-row">
+            <label>Toast Border Radius</label>
+            <input type="text" id="toastBorderRadius" placeholder="4px" />
+          </div>
+          <div class="advanced-row">
+            <label>Toast Font Size</label>
+            <input type="text" id="toastFontSize" placeholder="13px" />
+          </div>
+          <div class="advanced-row">
+            <label>Toast Font Weight</label>
+            <input type="text" id="toastFontWeight" placeholder="600" />
+          </div>
+          <div class="advanced-row">
+            <label>Toast Box Shadow</label>
+            <input type="text" id="toastBoxShadow" placeholder="0 4px 12px rgba(0,0,0,0.5)" />
+          </div>
+          <div class="advanced-row">
+            <label>Progress Track Color</label>
+            <input type="text" id="toastProgressTrackColor" placeholder="rgba(255,255,255,0.25)" />
+          </div>
+          <div class="advanced-row">
+            <label>Progress Bar Color</label>
+            <input type="text" id="toastProgressBarColor" placeholder="rgba(255,255,255,0.95)" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn-secondary" id="resetTheme">Reset Theme Defaults</button>
+        </div>
+      </div>
+    </section>
+
     <section class="feature-block" id="section-autoskip">
       <div class="feature-header">
         <div class="feature-title">
@@ -110,121 +239,10 @@
             <label>Toast Duration (ms)</label>
             <input type="number" id="toastDurationMs" min="500" max="8000" step="100" />
           </div>
-          </div>
         </div>
 
         <div class="actions">
           <button class="btn-secondary" id="resetAdvanced">Reset All to Defaults</button>
-        </div>
-      </div>
-    </section>
-
-    <section class="feature-block" id="section-theme">
-      <div class="feature-header">
-        <div class="feature-title">
-          <span class="feature-icon">🎨</span>
-          <span>Theme Settings</span>
-          <span class="info-icon" title="Global colors, hover, animations and reusable visual tokens for injected UI.">?</span>
-        </div>
-      </div>
-
-      <div class="collapsible-section" id="themeConfig" style="display:none;">
-        <div class="config-label">Global Colors</div>
-        <div class="advanced-grid">
-          <div class="advanced-row">
-            <label>Primary Color</label>
-            <input type="color" id="primaryColor" />
-          </div>
-          <div class="advanced-row">
-            <label>On Primary Color</label>
-            <input type="color" id="onPrimaryColor" />
-          </div>
-          <div class="advanced-row">
-            <label>Hover Background</label>
-            <input type="color" id="hoverBgColorHex" />
-          </div>
-          <div class="advanced-row">
-            <label>Hover Opacity</label>
-            <input type="range" id="hoverBgOpacity" min="0" max="1" step="0.01" />
-          </div>
-          <div class="advanced-row">
-            <label>Disabled Opacity</label>
-            <input type="number" id="disabledOpacity" min="0" max="1" step="0.1" />
-          </div>
-        </div>
-
-        <div class="config-label" style="margin-top: 14px;">Buttons & Icons</div>
-        <div class="advanced-grid">
-          <div class="advanced-row">
-            <label>Button Horizontal Padding</label>
-            <input type="text" id="buttonPaddingX" placeholder="12px" />
-          </div>
-          <div class="advanced-row">
-            <label>Hover Transition (ms)</label>
-            <input type="number" id="buttonHoverTransitionMs" min="50" max="1000" step="50" />
-          </div>
-          <div class="advanced-row">
-            <label>Icon Size</label>
-            <input type="text" id="iconSize" placeholder="24px" />
-          </div>
-        </div>
-
-        <div class="config-label" style="margin-top: 14px;">Toast Layout & Effects</div>
-        <div class="advanced-grid">
-          <div class="advanced-row">
-            <label>Toast Position</label>
-            <select id="toastPositionPreset">
-              <option value="top-left">◤ Top Left</option>
-              <option value="top-right">Top Right ◥</option>
-              <option value="bottom-left" selected>◣ Bottom Left</option>
-              <option value="bottom-right">Bottom Right ◢</option>
-              <option value="on-action">◎ On Action Element</option>
-            </select>
-          </div>
-          <div class="advanced-row">
-            <label>Toast Inset</label>
-            <input type="text" id="toastInset" placeholder="20px" />
-          </div>
-          <div class="advanced-row">
-            <label>Animation Duration (ms)</label>
-            <input type="number" id="toastAnimationMs" min="100" max="1000" step="50" />
-          </div>
-          <div class="advanced-row">
-            <label>Toast Gap</label>
-            <input type="text" id="toastGap" placeholder="8px" />
-          </div>
-          <div class="advanced-row">
-            <label>Toast Padding</label>
-            <input type="text" id="toastPadding" placeholder="12px 16px" />
-          </div>
-          <div class="advanced-row">
-            <label>Toast Border Radius</label>
-            <input type="text" id="toastBorderRadius" placeholder="4px" />
-          </div>
-          <div class="advanced-row">
-            <label>Toast Font Size</label>
-            <input type="text" id="toastFontSize" placeholder="13px" />
-          </div>
-          <div class="advanced-row">
-            <label>Toast Font Weight</label>
-            <input type="text" id="toastFontWeight" placeholder="600" />
-          </div>
-          <div class="advanced-row">
-            <label>Toast Box Shadow</label>
-            <input type="text" id="toastBoxShadow" placeholder="0 4px 12px rgba(0,0,0,0.5)" />
-          </div>
-          <div class="advanced-row">
-            <label>Progress Track Color</label>
-            <input type="text" id="toastProgressTrackColor" placeholder="rgba(255,255,255,0.25)" />
-          </div>
-          <div class="advanced-row">
-            <label>Progress Bar Color</label>
-            <input type="text" id="toastProgressBarColor" placeholder="rgba(255,255,255,0.95)" />
-          </div>
-        </div>
-
-        <div class="actions">
-          <button class="btn-secondary" id="resetTheme">Reset Theme Defaults</button>
         </div>
       </div>
     </section>

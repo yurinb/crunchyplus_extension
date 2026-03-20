@@ -543,7 +543,7 @@
       const remainingSeconds = Math.max(Math.ceil((delayMs - elapsed) / 1000), 0);
       target.style.backgroundSize = `${Math.floor(ratio * 100)}% 100%`;
       const blink = Math.floor(elapsed / 180) % 2 === 0;
-      target.style.outline = `1px solid ${blink ? (theme.primaryColor || "#f47521") : "transparent"}`;
+      target.style.outline = `4px solid ${blink ? (theme.primaryColor || "#f47521") : "transparent"}`;
       target.style.outlineOffset = "-1px";
       target.style.boxShadow = blink
         ? `inset 0 0 0 1px ${(theme.primaryColor || "#f47521")}66`
@@ -751,9 +751,9 @@
   function showExtensionIndicator(target, label) {
     ensureExtensionIndicator();
     const theme = settings.theme || {};
-    const rect = target.getBoundingClientRect();
-    const top = Math.max(8, rect.top - 28);
-    const left = Math.max(8, rect.left);
+    const rect  = target.getBoundingClientRect();
+    const top   = Math.max(8, rect.top - 28);
+    const left  = Math.max(8, rect.left);
 
     extensionIndicator.textContent = `From extension: ${label}`;
     extensionIndicator.style.top = `${Math.round(top)}px`;

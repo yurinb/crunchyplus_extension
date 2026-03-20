@@ -26,7 +26,10 @@ body {
   color: var(--text);
   width: 440px;
   min-height: 200px;
+  max-height: 620px;
   font-size: 13px;
+  display: flex;
+  flex-direction: column;
 }
 
 header {
@@ -47,6 +50,69 @@ main {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  /* overflow-y: auto; */
+  flex: 1 1 auto;
+}
+
+.theme-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.theme-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 9px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.15s;
+}
+
+.theme-card:hover {
+  border-color: var(--orange);
+  transform: translateY(-1px);
+}
+
+.theme-card input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.theme-card input:checked + .theme-card-preview {
+  outline: 2px solid var(--orange);
+  outline-offset: 2px;
+}
+
+.theme-card input:checked ~ .theme-card-name {
+  color: var(--text);
+}
+
+.theme-card-preview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  border-radius: 5px;
+  padding: 4px;
+  background: color-mix(in srgb, var(--surface2) 80%, black 20%);
+}
+
+.swatch {
+  display: block;
+  height: 20px;
+  border-radius: 3px;
+  background: var(--swatch);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.theme-card-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
 .feature-block {
@@ -233,6 +299,9 @@ footer {
   align-items: center;
   gap: 12px;
   background: var(--surface);
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
 }
 
 .btn-primary {
@@ -240,6 +309,7 @@ footer {
   color: var(--theme-on-primary);
   border: none;
   padding: 9px 20px;
+  flex: 1 1 auto;
   border-radius: var(--radius);
   font-size: 13px;
   font-weight: 600;
@@ -314,6 +384,10 @@ footer {
 @media (max-width: 460px) {
   body {
     width: 360px;
+  }
+
+  .theme-cards {
+    grid-template-columns: 1fr;
   }
 
   .advanced-grid {
