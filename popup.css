@@ -7,6 +7,8 @@
 :root {
   --orange: #f47521;
   --orange-dark: #d9621a;
+  --theme-hover-bg: rgba(244, 117, 33, 0.15);
+  --theme-on-primary: #ffffff;
   --bg: #1a1a1a;
   --surface: #242424;
   --surface2: #2e2e2e;
@@ -80,7 +82,7 @@ main {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: rgba(244, 117, 33, 0.2);
+  background: var(--theme-hover-bg);
   color: var(--orange);
   font-size: 10px;
   font-weight: 700;
@@ -92,7 +94,7 @@ main {
 
 .info-icon:hover {
   opacity: 1;
-  background: rgba(244, 117, 33, 0.3);
+  background: var(--theme-hover-bg);
 }
 
 .feature-desc {
@@ -183,6 +185,12 @@ select {
   transition: border-color 0.15s;
 }
 
+.advanced-row input[type="range"] {
+  width: 100%;
+  accent-color: var(--orange);
+  cursor: pointer;
+}
+
 .advanced-row input[type="text"]:focus,
 .advanced-row input[type="number"]:focus,
 .advanced-row input[type="color"]:focus {
@@ -229,7 +237,7 @@ footer {
 
 .btn-primary {
   background: var(--orange);
-  color: #fff;
+  color: var(--theme-on-primary);
   border: none;
   padding: 9px 20px;
   border-radius: var(--radius);
@@ -245,9 +253,15 @@ footer {
 
 .save-status {
   font-size: 12px;
-  color: #6dbf6d;
+  color: color-mix(in srgb, var(--orange) 65%, white 35%);
   opacity: 0;
   transition: opacity 0.3s;
+}
+
+.advanced-row input:disabled,
+.advanced-row select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .save-status.visible {
