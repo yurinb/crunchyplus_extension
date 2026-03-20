@@ -104,6 +104,94 @@
         </div>
       </div>
     </section>
+
+    <section class="feature-block" id="section-advanced">
+      <div class="feature-header">
+        <div class="feature-title">
+          <span class="feature-icon">⚙️</span>
+          <span>Advanced Settings</span>
+          <span class="info-icon" title="Customize timing, animation, colors and other advanced behavior.">?</span>
+        </div>
+      </div>
+
+      <div class="collapsible-section" id="advancedConfig" style="display:none;">
+        <div class="config-label">Timing & Intervals</div>
+        <div class="advanced-grid">
+          <div class="advanced-row">
+            <label>Auto-Skip Check Interval (ms)</label>
+            <input type="number" id="skipIntervalMs" min="100" max="5000" step="50" />
+          </div>
+          <div class="advanced-row">
+            <label>Skip Cooldown (ms)</label>
+            <input type="number" id="skipCooldownMs" min="500" max="10000" step="100" />
+          </div>
+          <div class="advanced-row">
+            <label>Navigation Debounce (ms)</label>
+            <input type="number" id="navDebounceMs" min="100" max="2000" step="50" />
+          </div>
+          <div class="advanced-row">
+            <label>Button Hover Transition (ms)</label>
+            <input type="number" id="buttonHoverTransitionMs" min="50" max="1000" step="50" />
+          </div>
+        </div>
+
+        <div class="config-label" style="margin-top: 14px;">Toast Notification</div>
+        <div class="advanced-grid">
+          <div class="advanced-row">
+            <label>Toast Duration (ms)</label>
+            <input type="number" id="toastDurationMs" min="500" max="8000" step="100" />
+          </div>
+          <div class="advanced-row">
+            <label>Animation Duration (ms)</label>
+            <input type="number" id="toastAnimationMs" min="100" max="1000" step="50" />
+          </div>
+          <div class="advanced-row">
+            <label>Position X</label>
+            <input type="text" id="toastPositionX" placeholder="20px" />
+          </div>
+          <div class="advanced-row">
+            <label>Position Y</label>
+            <input type="text" id="toastPositionY" placeholder="20px" />
+          </div>
+          <div class="advanced-row">
+            <label>Background</label>
+            <input type="color" id="toastBgColor" />
+          </div>
+          <div class="advanced-row">
+            <label>Text Color</label>
+            <input type="color" id="toastTextColor" />
+          </div>
+          <div class="advanced-row">
+            <label>Font Size</label>
+            <input type="text" id="toastFontSize" placeholder="13px" />
+          </div>
+          <div class="advanced-row">
+            <label>Border Radius</label>
+            <input type="text" id="toastBorderRadius" placeholder="4px" />
+          </div>
+          <div class="advanced-row">
+            <label>Padding</label>
+            <input type="text" id="toastPadding" placeholder="12px 16px" />
+          </div>
+        </div>
+
+        <div class="config-label" style="margin-top: 14px;">UI & Colors</div>
+        <div class="advanced-grid">
+          <div class="advanced-row">
+            <label>Hover Background</label>
+            <input type="text" id="hoverBgColor" placeholder="rgba(244, 117, 33, 0.15)" />
+          </div>
+          <div class="advanced-row">
+            <label>Disabled Opacity</label>
+            <input type="number" id="disabledOpacity" min="0" max="1" step="0.1" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn-secondary" id="resetAdvanced">Reset All to Defaults</button>
+        </div>
+      </div>
+    </section>
   </main>
 
   <footer>
