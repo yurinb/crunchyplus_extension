@@ -57,49 +57,7 @@
         <div class="config-label" style="margin-top:10px;">Previous Episode Selector</div>
         <input type="text" id="prevSelector" spellcheck="false" />
 
-        <div class="config-label" style="margin-top:14px;">Button Style</div>
-        <div class="style-grid">
-          <div class="style-row">
-            <label>Background</label>
-            <input type="color" id="btnBg" />
-          </div>
-          <div class="style-row">
-            <label>Text color</label>
-            <input type="color" id="btnColor" />
-          </div>
-          <div class="style-row">
-            <label>Font size</label>
-            <input type="text" id="btnFontSize" placeholder="14px" />
-          </div>
-          <div class="style-row">
-            <label>Padding</label>
-            <input type="text" id="btnPadding" placeholder="8px 16px" />
-          </div>
-          <div class="style-row">
-            <label>Border radius</label>
-            <input type="text" id="btnBorderRadius" placeholder="4px" />
-          </div>
-          <div class="style-row">
-            <label>Font weight</label>
-            <input type="text" id="btnFontWeight" placeholder="600" />
-          </div>
-          <div class="style-row">
-            <label>Opacity</label>
-            <input type="range" id="btnOpacity" min="0.1" max="1" step="0.05" />
-          </div>
-          <div class="style-row">
-            <label>Position</label>
-            <select id="btnPosition">
-              <option value="bottom-right">Bottom Right</option>
-              <option value="bottom-left">Bottom Left</option>
-              <option value="top-right">Top Right</option>
-              <option value="top-left">Top Left</option>
-            </select>
-          </div>
-        </div>
-
         <div class="actions">
-          <button class="btn-secondary" id="resetEpisodeNavStyle">Reset style</button>
           <button class="btn-secondary" id="resetEpisodeNavSelectors">Reset selectors</button>
         </div>
       </div>
@@ -138,6 +96,17 @@
         <div class="config-label" style="margin-top: 14px;">Toast Notification</div>
         <div class="advanced-grid">
           <div class="advanced-row">
+            <label>Enable Toast</label>
+            <select id="toastEnabled">
+              <option value="true">Enabled</option>
+              <option value="false">Disabled</option>
+            </select>
+          </div>
+          <div class="advanced-row">
+            <label>Pre-Action Delay (ms)</label>
+            <input type="number" id="actionDelayMs" min="0" max="8000" step="100" />
+          </div>
+          <div class="advanced-row">
             <label>Toast Duration (ms)</label>
             <input type="number" id="toastDurationMs" min="500" max="8000" step="100" />
           </div>
@@ -172,6 +141,14 @@
           <div class="advanced-row">
             <label>Padding</label>
             <input type="text" id="toastPadding" placeholder="12px 16px" />
+          </div>
+          <div class="advanced-row">
+            <label>Font Weight</label>
+            <input type="text" id="toastFontWeight" placeholder="600" />
+          </div>
+          <div class="advanced-row">
+            <label>Box Shadow</label>
+            <input type="text" id="toastBoxShadow" placeholder="0 4px 12px rgba(0,0,0,0.5)" />
           </div>
         </div>
 

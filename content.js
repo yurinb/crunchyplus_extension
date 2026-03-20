@@ -43,16 +43,39 @@
   let autoSkipToggle   = null;
   let episodeNavToggle = null;
   let toastContainer   = null;
+  let pendingActionMap = {};
 
-  const STORAGE_KEY      = "settings";
-  const SKIP_COOLDOWN_MS = 3000;
-  const NAV_DEBOUNCE_MS  = 400;
+  const STORAGE_KEY = "settings";
 
   function loadSettings(callback) {
     chrome.storage.sync.get(STORAGE_KEY, (data) => {
-      settings = data[STORAGE_KEY] || getDefaults();
+      settings = normalizeSettings(data[STORAGE_KEY] || getDefaults());
       callback();
     });
+  }
+
+  function normalizeSettings(rawSettings) {
+    const defaults = getDefaults();
+    const merged = {
+      ...defaults,
+      ...rawSettings,
+      autoSkip: {
+        ...defaults.autoSkip,
+        ...(rawSettings?.autoSkip || {})
+      },
+      episodeNav: {
+        ...defaults.episodeNav,
+        ...(rawSettings?.episodeNav || {})
+      },
+      advanced: {
+        ...defaults.advanced,
+        ...(rawSettings?.advanced || {})
+      }
+    };
+
+    // Legacy cleanup: navigation button style is no longer used.
+    delete merged.episodeNav.buttonStyle;
+    return merged;
   }
 
   function getDefaults() {
@@ -75,22 +98,14 @@
       episodeNav: {
         enabled     : true,
         nextSelector: "[data-t='next-episode'] a.title, [data-t='next-episode'] a",
-        prevSelector: "[data-t='prev-episode'] a.title, [data-t='prev-episode'] a",
-        buttonStyle : {
-          backgroundColor: "#f47521",
-          color          : "#ffffff",
-          fontSize       : "14px",
-          padding        : "8px 16px",
-          borderRadius   : "4px",
-          fontWeight     : "600",
-          position       : "bottom-right",
-          opacity        : "0.9"
-        }
+        prevSelector: "[data-t='prev-episode'] a.title, [data-t='prev-episode'] a"
       },
       advanced: {
         skipIntervalMs         : 750,
         skipCooldownMs         : 3000,
         navDebounceMs          : 400,
+        toastEnabled           : true,
+        actionDelayMs          : 1500,
         toastPositionX         : "20px",
         toastPositionY         : "20px",
         toastDurationMs        : 2500,
@@ -111,7 +126,7 @@
 
   chrome.storage.onChanged.addListener((changes) => {
     if (changes[STORAGE_KEY]) {
-      settings = changes[STORAGE_KEY].newValue;
+      settings = normalizeSettings(changes[STORAGE_KEY].newValue);
       restartAll();
     }
   });
@@ -141,7 +156,7 @@
 
   function startAutoSkip() {
     stopAutoSkip();
-    const interval         = settings.advanced?.skipIntervalMs || SKIP_COOLDOWN_MS;
+    const interval         = settings.advanced?.skipIntervalMs || 750;
           autoSkipInterval = setInterval(tryClickSkip, interval);
   }
 
@@ -160,13 +175,18 @@
           if (isVisible(el)) {
                 // Check per-selector cooldown
             if (Date.now() < (skipCooldownMap[selector] || 0)) return;
-            
-            el.click();
-            skipCooldownMap[selector] = Date.now() + cooldownMs;
+
+            const actionKey = `skip:${selector}`;
+            if (pendingActionMap[actionKey]) return;
             
                 // Extract skip type from aria-label or data attributes
             const skipType = extractSkipType(el);
-            showToast(`Skip: ${skipType}`);
+            runActionWithToast(`Skip ${skipType}`, actionKey, () => {
+              if (el.isConnected && isVisible(el)) {
+                el.click();
+                skipCooldownMap[selector] = Date.now() + cooldownMs;
+              }
+            });
             return;
           }
         }
@@ -363,8 +383,12 @@
 
     btn.addEventListener("click", (e) => {
       e.preventDefault();
-      if (onClickCallback) onClickCallback();
-      window.location.href = href;
+      const actionKey = `nav:${href}`;
+      if (pendingActionMap[actionKey]) return;
+      runActionWithToast(label, actionKey, () => {
+        if (onClickCallback) onClickCallback();
+        window.location.href = href;
+      });
     });
 
     btn.addEventListener("mouseenter", () => {
@@ -376,6 +400,123 @@
     });
 
     return btn;
+  }
+
+  function runActionWithToast(actionLabel, actionKey, actionFn) {
+    const adv = settings.advanced || {};
+    const toastEnabled = adv.toastEnabled !== false;
+    const delayMs = Number(adv.actionDelayMs || 0);
+
+    pendingActionMap[actionKey] = true;
+
+    const runAndClear = () => {
+      try {
+        actionFn();
+      } finally {
+        delete pendingActionMap[actionKey];
+      }
+    };
+
+    if (!toastEnabled || delayMs <= 0) {
+      runAndClear();
+      return;
+    }
+
+    showCountdownToast(`${actionLabel} in...`, delayMs, runAndClear);
+  }
+
+  function showCountdownToast(label, delayMs, onComplete) {
+    const adv = settings.advanced || {};
+    const toast = createToastBase();
+    const text = document.createElement("div");
+    const progressTrack = document.createElement("div");
+    const progressBar = document.createElement("div");
+    const startedAt = Date.now();
+
+    text.style.marginBottom = "8px";
+    text.style.fontWeight = adv.toastFontWeight || "600";
+
+    progressTrack.style.height = "4px";
+    progressTrack.style.background = "rgba(255,255,255,0.25)";
+    progressTrack.style.borderRadius = "999px";
+    progressTrack.style.overflow = "hidden";
+
+    progressBar.style.height = "100%";
+    progressBar.style.width = "0%";
+    progressBar.style.background = "rgba(255,255,255,0.95)";
+    progressBar.style.transition = "width 0.1s linear";
+
+    progressTrack.appendChild(progressBar);
+    toast.appendChild(text);
+    toast.appendChild(progressTrack);
+    toastContainer.appendChild(toast);
+
+    const tick = () => {
+      const elapsed = Date.now() - startedAt;
+      const ratio = Math.min(elapsed / delayMs, 1);
+      const remainingSeconds = Math.max(Math.ceil((delayMs - elapsed) / 1000), 0);
+      text.textContent = `${label} ${remainingSeconds}s`;
+      progressBar.style.width = `${Math.floor(ratio * 100)}%`;
+    };
+
+    tick();
+    const timer = setInterval(tick, 100);
+
+    setTimeout(() => {
+      clearInterval(timer);
+      dismissToast(toast, onComplete);
+    }, delayMs);
+  }
+
+  function createToastBase() {
+    const adv = settings.advanced || {};
+    ensureToastContainer();
+
+    const toast = document.createElement("div");
+    toast.style.backgroundColor = adv.toastBgColor || "#f47521";
+    toast.style.color = adv.toastTextColor || "#ffffff";
+    toast.style.padding = adv.toastPadding || "12px 16px";
+    toast.style.borderRadius = adv.toastBorderRadius || "4px";
+    toast.style.fontSize = adv.toastFontSize || "13px";
+    toast.style.fontWeight = adv.toastFontWeight || "600";
+    toast.style.boxShadow = adv.toastBoxShadow || "0 4px 12px rgba(0,0,0,0.5)";
+    toast.style.display = "block";
+    toast.style.whiteSpace = "nowrap";
+    toast.style.willChange = "transform, opacity";
+    toast.style.animation = `fadeinup-cre ${adv.toastAnimationMs || 300}ms ease forwards`;
+    toast.style.pointerEvents = "auto";
+    return toast;
+  }
+
+  function dismissToast(toast, onDone) {
+    const adv = settings.advanced || {};
+    const hideMs = Number(adv.toastAnimationMs || 300);
+    toast.style.animation = `fadeoutdown-cre ${hideMs}ms ease forwards`;
+    setTimeout(() => {
+      toast.remove();
+      if (onDone) onDone();
+    }, hideMs);
+  }
+
+  function ensureToastContainer() {
+    const adv    = settings.advanced || {};
+    const toastX = adv.toastPositionX || "20px";
+    const toastY = adv.toastPositionY || "20px";
+
+    if (!toastContainer) {
+      toastContainer                     = document.createElement("div");
+      toastContainer.id                  = "cre-toast-container";
+      toastContainer.style.position      = "fixed";
+      toastContainer.style.zIndex        = "999999";
+      toastContainer.style.display       = "flex";
+      toastContainer.style.flexDirection = "column";
+      toastContainer.style.gap           = "8px";
+      toastContainer.style.pointerEvents = "none";
+      document.body.appendChild(toastContainer);
+    }
+
+    toastContainer.style.bottom = toastY;
+    toastContainer.style.left = toastX;
   }
 
   function createFeatureToggle(label, isEnabled, iconFn, onToggle) {
@@ -418,48 +559,16 @@
   }
 
   function showToast(message) {
+    if (settings.advanced && settings.advanced.toastEnabled === false) return;
     const adv    = settings.advanced || {};
-    const toastX = adv.toastPositionX || "20px";
-    const toastY = adv.toastPositionY || "20px";
-    const toastZ = "999999";
-    
-    if (!toastContainer) {
-      toastContainer                     = document.createElement("div");
-      toastContainer.id                  = "cre-toast-container";
-      toastContainer.style.position      = "fixed";
-      toastContainer.style.bottom        = toastY;
-      toastContainer.style.left          = toastX;
-      toastContainer.style.zIndex        = toastZ;
-      toastContainer.style.display       = "flex";
-      toastContainer.style.flexDirection = "column";
-      toastContainer.style.gap           = "8px";
-      toastContainer.style.pointerEvents = "none";
-      document.body.appendChild(toastContainer);
-    }
-
-    const toast                       = document.createElement("div");
-          toast.style.backgroundColor = adv.toastBgColor || "#f47521";
-          toast.style.color           = adv.toastTextColor || "#ffffff";
-          toast.style.padding         = adv.toastPadding || "12px 16px";
-          toast.style.borderRadius    = adv.toastBorderRadius || "4px";
-          toast.style.fontSize        = adv.toastFontSize || "13px";
-          toast.style.fontWeight      = adv.toastFontWeight || "600";
-          toast.style.boxShadow       = adv.toastBoxShadow || "0 4px 12px rgba(0,0,0,0.5)";
-          toast.style.display         = "block";
-          toast.style.whiteSpace      = "nowrap";
-          toast.style.willChange      = "transform, opacity";
-          toast.style.animation       = `fadeinup-cre ${adv.toastAnimationMs || 300}ms ease forwards`;
-          toast.style.pointerEvents   = "auto";
-          toast.textContent           = message;
+    const toast = createToastBase();
+    toast.textContent = message;
 
     toastContainer.appendChild(toast);
 
     const durationMs = adv.toastDurationMs || 2500;
-    const hideMs     = adv.toastAnimationMs || 300;
-    
     setTimeout(() => {
-      toast.style.animation = `fadeoutdown-cre ${hideMs}ms ease forwards`;
-      setTimeout(() => toast.remove(), hideMs);
+      dismissToast(toast);
     }, durationMs);
   }
 
