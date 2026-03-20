@@ -6,7 +6,6 @@ Crunchy+ improves Crunchyroll experience.
 
 ## Download
 
-- GitHub Repository: [https://github.com/yurinb/crunchyplus_extension](https://github.com/yurinb/crunchyplus_extension)
 - Direct ZIP Download: [https://github.com/yurinb/crunchyplus_extension/archive/refs/heads/main.zip](https://github.com/yurinb/crunchyplus_extension/archive/refs/heads/main.zip)
 
 ## What It Does
