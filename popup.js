@@ -1,6 +1,10 @@
 "use strict";
 
 const STORAGE_KEY = "settings";
+const AUTO_SAVE_DELAY_MS = 250;
+
+let autoSaveTimer = null;
+let isHydratingForm = true;
 
 const DEFAULT_AUTO_SKIP_SELECTORS = [
   "button[aria-label^='Skip']",
@@ -298,18 +302,36 @@ function readForm() {
   };
 }
 
-function showSaved() {
-  const el = $("saveStatus");
-  el.textContent = "Saved!";
-  el.classList.add("visible");
-  setTimeout(() => el.classList.remove("visible"), 2000);
+function saveSettings() {
+  const settings = readForm();
+  chrome.storage.sync.set({ [STORAGE_KEY]: settings });
+}
+
+function scheduleAutoSave() {
+  if (isHydratingForm) return;
+  if (autoSaveTimer) {
+    clearTimeout(autoSaveTimer);
+  }
+  autoSaveTimer = setTimeout(() => {
+    saveSettings();
+  }, AUTO_SAVE_DELAY_MS);
+}
+
+function bindAutoSaveListeners() {
+  document.querySelectorAll("input, textarea, select").forEach((el) => {
+    el.addEventListener("input", scheduleAutoSave);
+    el.addEventListener("change", scheduleAutoSave);
+  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   chrome.storage.sync.get(STORAGE_KEY, (data) => {
     const settings = data[STORAGE_KEY] || buildDefaults();
     loadForm(settings);
+    isHydratingForm = false;
   });
+
+  bindAutoSaveListeners();
 
   document.querySelectorAll("input[name='themePreset']").forEach((input) => {
     input.addEventListener("change", () => {
@@ -332,20 +354,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  $("saveBtn").addEventListener("click", () => {
-    const settings = readForm();
-    chrome.storage.sync.set({ [STORAGE_KEY]: settings }, () => {
-      showSaved();
-    });
-  });
-
   $("resetAutoSkipSelectors").addEventListener("click", () => {
     $("autoSkipSelectors").value = DEFAULT_AUTO_SKIP_SELECTORS.join("\n");
+    scheduleAutoSave();
   });
 
   $("resetEpisodeNavSelectors").addEventListener("click", () => {
     $("nextSelector").value = DEFAULT_NEXT_SELECTOR;
     $("prevSelector").value = DEFAULT_PREV_SELECTOR;
+    scheduleAutoSave();
   });
 
   $("resetAdvanced")?.addEventListener("click", () => {
@@ -357,6 +374,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if ($("actionDelayMs")) $("actionDelayMs").value = a.actionDelayMs;
     if ($("navActionDelayMs")) $("navActionDelayMs").value = a.navActionDelayMs;
     if ($("toastDurationMs")) $("toastDurationMs").value = a.toastDurationMs;
+    scheduleAutoSave();
   });
 
   $("resetTheme")?.addEventListener("click", () => {
@@ -382,6 +400,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     applyThemeToPopup(resolveThemeFromPreset(t));
     syncToastPositionControls();
+    scheduleAutoSave();
   });
 });
 

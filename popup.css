@@ -336,50 +336,10 @@ select {
   border-color: var(--orange);
 }
 
-footer {
-  padding: 12px 16px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--surface);
-  position: sticky;
-  bottom: 0;
-  z-index: 3;
-}
-
-.btn-primary {
-  background: var(--orange);
-  color: var(--theme-on-primary);
-  border: none;
-  padding: 9px 20px;
-  flex: 1 1 auto;
-  border-radius: var(--radius);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.btn-primary:hover {
-  background: var(--orange-dark);
-}
-
-.save-status {
-  font-size: 12px;
-  color: color-mix(in srgb, var(--orange) 65%, white 35%);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
 .advanced-row input:disabled,
 .advanced-row select:disabled {
   opacity: 0.55;
   cursor: not-allowed;
-}
-
-.save-status.visible {
-  opacity: 1;
 }
 
 .toggle {
