@@ -39,10 +39,19 @@ header {
 }
 
 .logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: 15px;
   font-weight: 700;
   color: var(--orange);
   letter-spacing: 0.3px;
+}
+
+.logo-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
 }
 
 main {
