@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crunchyroll Enhancer</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header>
+    <div class="logo">🍊 Crunchyroll Enhancer</div>
+  </header>
+
+  <main>
+    <section class="feature-block" id="section-autoskip">
+      <div class="feature-header">
+        <div class="feature-title">
+          <span class="feature-icon">⏭</span>
+          <span>Auto-Skip</span>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="autoSkipEnabled" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <p class="feature-desc">Automatically clicks Skip Intro, Skip Recap, Skip Credits buttons.</p>
+
+      <div class="collapsible-section" id="autoSkipConfig">
+        <div class="config-label">
+          Skip Button Selectors
+          <span class="hint">(one per line, CSS selectors)</span>
+        </div>
+        <textarea id="autoSkipSelectors" rows="7" spellcheck="false"></textarea>
+        <div class="actions">
+          <button class="btn-secondary" id="resetAutoSkipSelectors">Reset to defaults</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="feature-block" id="section-episodenav">
+      <div class="feature-header">
+        <div class="feature-title">
+          <span class="feature-icon">🎬</span>
+          <span>Episode Navigation</span>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="episodeNavEnabled" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <p class="feature-desc">Adds Next / Previous Episode buttons directly on the player.</p>
+
+      <div class="collapsible-section" id="episodeNavConfig">
+        <div class="config-label">Next Episode Selector</div>
+        <input type="text" id="nextSelector" spellcheck="false" />
+
+        <div class="config-label" style="margin-top:10px;">Previous Episode Selector</div>
+        <input type="text" id="prevSelector" spellcheck="false" />
+
+        <div class="config-label" style="margin-top:14px;">Button Style</div>
+        <div class="style-grid">
+          <div class="style-row">
+            <label>Background</label>
+            <input type="color" id="btnBg" />
+          </div>
+          <div class="style-row">
+            <label>Text color</label>
+            <input type="color" id="btnColor" />
+          </div>
+          <div class="style-row">
+            <label>Font size</label>
+            <input type="text" id="btnFontSize" placeholder="14px" />
+          </div>
+          <div class="style-row">
+            <label>Padding</label>
+            <input type="text" id="btnPadding" placeholder="8px 16px" />
+          </div>
+          <div class="style-row">
+            <label>Border radius</label>
+            <input type="text" id="btnBorderRadius" placeholder="4px" />
+          </div>
+          <div class="style-row">
+            <label>Font weight</label>
+            <input type="text" id="btnFontWeight" placeholder="600" />
+          </div>
+          <div class="style-row">
+            <label>Opacity</label>
+            <input type="range" id="btnOpacity" min="0.1" max="1" step="0.05" />
+          </div>
+          <div class="style-row">
+            <label>Position</label>
+            <select id="btnPosition">
+              <option value="bottom-right">Bottom Right</option>
+              <option value="bottom-left">Bottom Left</option>
+              <option value="top-right">Top Right</option>
+              <option value="top-left">Top Left</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn-secondary" id="resetEpisodeNavStyle">Reset style</button>
+          <button class="btn-secondary" id="resetEpisodeNavSelectors">Reset selectors</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <button class="btn-primary" id="saveBtn">Save Settings</button>
+    <div class="save-status" id="saveStatus"></div>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>

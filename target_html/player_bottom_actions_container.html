@@ -1,0 +1,84 @@
+<div>
+    <div data-testid="bottom-left-controls-stack">
+        <button aria-label="Jump backward 10 seconds" type="button" data-testid="jump-backward-button">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" data-testid="jump-backward-icon">
+                <path d="M12.3001 0.0654297V2.40479C14.3472 2.46507 16.3314 3.1403 17.9924 4.34629C19.7345 5.61117 21.0319 7.39482 21.6985 9.44189C22.3651 11.489 22.3668 13.6949 21.7035 15.7431C21.0401 17.7912 19.7457 19.5769 18.0056 20.8445C16.2655 22.1121 14.1688 22.7967 12.0159 22.8001C9.86297 22.8035 7.76411 22.1254 6.01998 20.8633C4.27585 19.6011 2.97581 17.8193 2.30602 15.7732C1.63626 13.7272 1.63093 11.5216 2.29108 9.47236L5.14664 10.3923C4.68065 11.8388 4.6844 13.3958 5.15719 14.8401C5.62999 16.2844 6.54756 17.5422 7.77868 18.4331C9.00982 19.324 10.4915 19.8025 12.0112 19.8001C13.5308 19.7977 15.0107 19.3144 16.239 18.4196C17.4674 17.5248 18.3811 16.2642 18.8494 14.8185C19.3176 13.3727 19.3164 11.8159 18.8459 10.3709C18.3753 8.92587 17.4597 7.66671 16.2299 6.77383C15.0814 5.93989 13.7138 5.46525 12.3001 5.40625V7.73535L6.02467 3.90039L12.3001 0.0654297Z"></path>
+            </svg>
+        </button>
+
+        <button aria-label="Pause" type="button" data-testid="play-pause-button">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" data-testid="pause-icon">
+                <path d="M4 2H10V22H4V2Z"></path>
+                <path d="M14 2H20V22H14V2Z"></path>
+            </svg>
+        </button>
+
+        <button aria-label="Jump forward 10 seconds" type="button" data-testid="jump-forward-button">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" data-testid="jump-forward-icon">
+                <path d="M11.7 0.0654297V2.40479C9.65282 2.46507 7.66859 3.1403 6.00757 4.34629C4.26546 5.61117 2.9681 7.39482 2.30151 9.44189C1.63494 11.489 1.63317 13.6949 2.29653 15.7431C2.9599 17.7912 4.25429 19.5769 5.99438 20.8445C7.73451 22.1121 9.83125 22.7967 11.9841 22.8001C14.137 22.8035 16.2359 22.1254 17.98 20.8633C19.7242 19.6011 21.0242 17.8193 21.694 15.7732C22.3638 13.7272 22.3691 11.5216 21.7089 9.47236L18.8534 10.3923C19.3194 11.8388 19.3156 13.3958 18.8428 14.8401C18.37 16.2844 17.4525 17.5422 16.2213 18.4331C14.9902 19.324 13.5085 19.8025 11.9888 19.8001C10.4692 19.7977 8.98929 19.3144 7.76099 18.4196C6.53264 17.5248 5.61889 16.2642 5.15063 14.8185C4.68241 13.3727 4.68364 11.8159 5.15415 10.3709C5.62467 8.92587 6.54032 7.66671 7.77007 6.77383C8.91866 5.93989 10.2862 5.46525 11.7 5.40625V7.73535L17.9753 3.90039L11.7 0.0654297Z"></path>
+            </svg>
+        </button>
+
+        <div
+            data-testid="volume-slider-container"
+            data-active="false"
+            role="slider"
+            tabindex="0"
+            aria-label="Volume"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+            aria-valuetext="Muted"
+        >
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" data-muted="true" data-volume-tier="off">
+                <path d="M22.2861 8.9082L19.1943 11.999L22.2861 15.0908L20.3799 16.9971L17.2881 13.9053L14.1963 16.998L12.29 15.0918L15.3818 11.999L12.29 8.90723L14.1963 7.00195L17.2881 10.0928L20.3799 7.00195L22.2861 8.9082Z"></path>
+                <path d="M17.3796 5.6346L19.0107 4C19.0107 4 22.3001 7.24613 22.3 12C22.3 16.7539 18.9172 20 18.9172 20L17.3 18.3345C17.3 18.3345 20.018 15.4753 20.018 12C20.018 8.52473 17.3796 5.6346 17.3796 5.6346Z"></path>
+                <path d="M14.626 8.79968L16.1973 7.12695C16.1973 7.12695 18.285 9.09785 18.3 12C18.3149 14.9021 16.1973 16.9409 16.1973 16.9409L14.626 15.2936C14.626 15.2936 16.0039 14.0603 16.0039 12C16.0039 9.93965 14.626 8.79968 14.626 8.79968Z"></path>
+                <path d="M12 14C13.1046 14 14 13.1046 14 12C14 10.8954 13.1046 10 12 10V14Z"></path>
+                <path d="M10.8 4.19922L4.8 7.79922H1.5V16.1992H4.8L10.8 19.7992V4.19922Z"></path>
+            </svg>
+        </div>
+
+        <span data-testid="timestamp" aria-label="03:24 elapsed 20:16 remaining">
+            <span>03:24</span><span> / </span><span>-20:16</span>
+        </span>
+    </div>
+
+    <div></div>
+
+    <div data-testid="bottom-right-controls-stack">
+        <div>
+            <button
+                aria-label="Audio and subtitle language options"
+                type="button"
+                aria-expanded="false"
+                aria-haspopup="menu"
+                data-testid="track-selection-button"
+            >
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 16.0003H5.9999V14.0002L14 14.0002V16.0003Z"></path>
+                    <path d="M17.9999 16.0003H16.0001V14.0002H17.9999V16.0003Z"></path>
+                    <path d="M8 12.0001L5.9999 12.0001L5.9999 10H8V12.0001Z"></path>
+                    <path d="M17.9999 12.0001H10.0001V10L17.9999 10V12.0001Z"></path>
+                    <path
+                        fill-rule="evenodd"
+                        clip-rule="evenodd"
+                        d="M22.0001 19.9999L2 19.9999L2 4L22.0001 4L22.0001 19.9999ZM4.0001 18.0001L20 18.0001L20 6.0001L4.0001 6.0001L4.0001 18.0001Z"
+                    ></path>
+                </svg>
+            </button>
+        </div>
+
+        <div>
+            <button
+                aria-label="Playback Speed Menu"
+                type="button"
+                aria-expanded="false"
+                aria-haspopup="menu"
+                data-testid="playback-speed-button"
+            >
+                1x
+            </button>
+        </div>
+    </div>
+</div>
