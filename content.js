@@ -221,18 +221,27 @@
           btn.style.background     = "none";
           btn.style.border         = "none";
           btn.style.cursor         = "pointer";
-          btn.style.padding        = "0";
+          btn.style.padding        = "0 12px";
           btn.style.margin         = "0";
           btn.style.display        = "flex";
           btn.style.alignItems     = "center";
           btn.style.justifyContent = "center";
-          btn.style.width          = "36px";
-          btn.style.height         = "36px";
+          btn.style.width          = "auto";
+          btn.style.height         = "100%";
+          btn.style.transition     = "background-color 0.2s ease";
           btn.innerHTML            = iconSvg;
 
     btn.addEventListener("click", (e) => {
       e.preventDefault();
       window.location.href = href;
+    });
+
+    btn.addEventListener("mouseenter", () => {
+      btn.style.backgroundColor = "rgba(244, 117, 33, 0.15)";
+    });
+
+    btn.addEventListener("mouseleave", () => {
+      btn.style.backgroundColor = "none";
     });
 
     return btn;
