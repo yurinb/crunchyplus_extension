@@ -1,6 +1,36 @@
 (() => {
   "use strict";
 
+  // Inject toast CSS animations immediately
+  (() => {
+    if (document.head) {
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes fadeinup-cre {
+          from { 
+            opacity: 0; 
+            transform: translateY(20px);
+          }
+          to { 
+            opacity: 1; 
+            transform: translateY(0);
+          }
+        }
+        @keyframes fadeoutdown-cre {
+          from { 
+            opacity: 1; 
+            transform: translateY(0);
+          }
+          to { 
+            opacity: 0; 
+            transform: translateY(20px);
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  })();
+
   let settings            = null;
   let autoSkipInterval    = null;
   let skipCooldownMap     = {};
@@ -363,27 +393,34 @@
       toastContainer.style.bottom = "20px";
       toastContainer.style.left = "20px";
       toastContainer.style.zIndex = "999999";
+      toastContainer.style.display = "flex";
+      toastContainer.style.flexDirection = "column";
+      toastContainer.style.gap = "8px";
+      toastContainer.style.pointerEvents = "none";
       document.body.appendChild(toastContainer);
     }
 
     const toast = document.createElement("div");
     toast.style.backgroundColor = "#f47521";
     toast.style.color = "#ffffff";
-    toast.style.padding = "10px 16px";
+    toast.style.padding = "12px 16px";
     toast.style.borderRadius = "4px";
-    toast.style.marginBottom = "10px";
-    toast.style.fontSize = "14px";
+    toast.style.fontSize = "13px";
     toast.style.fontWeight = "600";
-    toast.style.boxShadow = "0 2px 8px rgba(0,0,0,0.4)";
-    toast.style.animation = "fadeInUp 0.3s ease";
+    toast.style.boxShadow = "0 4px 12px rgba(0,0,0,0.5)";
+    toast.style.display = "block";
+    toast.style.whiteSpace = "nowrap";
+    toast.style.willChange = "transform, opacity";
+    toast.style.animation = "fadeinup-cre 0.3s ease forwards";
+    toast.style.pointerEvents = "auto";
     toast.textContent = message;
 
     toastContainer.appendChild(toast);
 
     setTimeout(() => {
-      toast.style.animation = "fadeOutDown 0.3s ease";
+      toast.style.animation = "fadeoutdown-cre 0.3s ease forwards";
       setTimeout(() => toast.remove(), 300);
-    }, 2000);
+    }, 2500);
   }
 
   function getPrevIcon() {
@@ -414,22 +451,7 @@
     </svg>`;
   }
 
-  // Add CSS animations for toasts
-  (() => {
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      @keyframes fadeOutDown {
-        from { opacity: 1; transform: translateY(0); }
-        to { opacity: 0; transform: translateY(20px); }
-      }
-    `;
-    document.head.appendChild(style);
-  })();
-
   loadSettings(() => {
     startAll();
   });
+})();
