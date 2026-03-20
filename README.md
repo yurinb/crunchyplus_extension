@@ -1,8 +1,13 @@
 # Crunchy+
 
-Crunchy+ makes watching on Crunchyroll faster and cleaner.
+Crunchy+ improves Crunchyroll experience.
 
 ![Crunchy+ Preview](preview.png)
+
+## Download
+
+- GitHub Repository: [https://github.com/yurinb/crunchyplus_extension](https://github.com/yurinb/crunchyplus_extension)
+- Direct ZIP Download: [https://github.com/yurinb/crunchyplus_extension/archive/refs/heads/main.zip](https://github.com/yurinb/crunchyplus_extension/archive/refs/heads/main.zip)
 
 ## What It Does
 
