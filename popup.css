@@ -73,6 +73,28 @@ main {
   font-size: 16px;
 }
 
+.info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(244, 117, 33, 0.2);
+  color: var(--orange);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: help;
+  margin-left: 4px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.info-icon:hover {
+  opacity: 1;
+  background: rgba(244, 117, 33, 0.3);
+}
+
 .feature-desc {
   font-size: 12px;
   color: var(--text-muted);

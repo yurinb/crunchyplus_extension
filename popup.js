@@ -94,6 +94,18 @@ document.addEventListener("DOMContentLoaded", () => {
     loadForm(settings);
   });
 
+  // Add collapsible click handlers for feature titles
+  document.querySelectorAll(".feature-title").forEach((title) => {
+    title.style.cursor = "pointer";
+    title.addEventListener("click", () => {
+      const section = title.closest(".feature-block");
+      const config = section.querySelector(".collapsible-section");
+      if (config) {
+        config.style.display = config.style.display === "none" ? "flex" : "none";
+      }
+    });
+  });
+
   $("saveBtn").addEventListener("click", () => {
     const settings = readForm();
     chrome.storage.sync.set({ [STORAGE_KEY]: settings }, () => {

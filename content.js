@@ -1,15 +1,18 @@
 (() => {
   "use strict";
 
-  let settings          = null;
-  let autoSkipInterval  = null;
-  let skipCooldownUntil = 0;
-  let navDebounceTimer  = null;
-  let navObserver       = null;
-  let lastNextHref      = null;
-  let lastPrevHref      = null;
-  let prevButton        = null;
-  let nextButton        = null;
+  let settings            = null;
+  let autoSkipInterval    = null;
+  let skipCooldownMap     = {};
+  let navDebounceTimer    = null;
+  let navObserver         = null;
+  let lastNextHref        = null;
+  let lastPrevHref        = null;
+  let prevButton          = null;
+  let nextButton          = null;
+  let autoSkipToggle      = null;
+  let episodeNavToggle    = null;
+  let toastContainer      = null;
 
   const STORAGE_KEY      = "settings";
   const SKIP_COOLDOWN_MS = 3000;
@@ -94,7 +97,6 @@
 
   function tryClickSkip() {
     if (!settings || !settings.autoSkip || !settings.autoSkip.enabled) return;
-    if (Date.now() < skipCooldownUntil) return;
 
     const selectors = settings.autoSkip.selectors;
     if (!Array.isArray(selectors)) return;
@@ -104,13 +106,31 @@
         const candidates = document.querySelectorAll(selector);
         for (const el of candidates) {
           if (isVisible(el)) {
+            // Check per-selector cooldown
+            if (Date.now() < (skipCooldownMap[selector] || 0)) return;
+            
             el.click();
-            skipCooldownUntil = Date.now() + SKIP_COOLDOWN_MS;
+            skipCooldownMap[selector] = Date.now() + SKIP_COOLDOWN_MS;
+            
+            // Extract skip type from aria-label or data attributes
+            const skipType = extractSkipType(el);
+            showToast(`Skip: ${skipType}`);
             return;
           }
         }
       } catch (_) { }
     }
+  }
+
+  function extractSkipType(el) {
+    const ariaLabel = el.getAttribute('aria-label') || '';
+    if (ariaLabel.includes('Intro')) return 'Intro';
+    if (ariaLabel.includes('Credits')) return 'Credits';
+    if (ariaLabel.includes('Recap')) return 'Recap';
+    if (ariaLabel.includes('Preview')) return 'Preview';
+    if (ariaLabel.includes('Opening')) return 'Opening';
+    if (ariaLabel.includes('Skip')) return 'Skipping';
+    return 'Content';
   }
 
   function isVisible(el) {
@@ -136,6 +156,14 @@
       nextButton.remove();
       nextButton = null;
     }
+    if (autoSkipToggle) {
+      autoSkipToggle.remove();
+      autoSkipToggle = null;
+    }
+    if (episodeNavToggle) {
+      episodeNavToggle.remove();
+      episodeNavToggle = null;
+    }
     lastNextHref = null;
     lastPrevHref = null;
   }
@@ -146,7 +174,7 @@
     });
 
     navObserver.observe(document.body, { childList: true, subtree: true });
-
+    injectFeatureToggles();
     scheduleNavUpdate();
   }
 
@@ -189,6 +217,47 @@
     injectNavButtonsToPlayer(prevHref, nextHref);
   }
 
+  function injectFeatureToggles() {
+    const controlStack = document.querySelector('[data-testid="bottom-right-controls-stack"]');
+    if (!controlStack) return;
+
+    // Remove old toggles if they exist
+    if (autoSkipToggle && controlStack.contains(autoSkipToggle)) autoSkipToggle.remove();
+    if (episodeNavToggle && controlStack.contains(episodeNavToggle)) episodeNavToggle.remove();
+
+    autoSkipToggle = null;
+    episodeNavToggle = null;
+
+    // Create auto-skip toggle
+    if (settings && settings.autoSkip) {
+      autoSkipToggle = createFeatureToggle(
+        "Toggle Auto-Skip",
+        settings.autoSkip.enabled,
+        getAutoSkipIcon,
+        () => toggleSetting('autoSkip')
+      );
+      controlStack.appendChild(autoSkipToggle);
+    }
+
+    // Create episode nav toggle
+    if (settings && settings.episodeNav) {
+      episodeNavToggle = createFeatureToggle(
+        "Toggle Episode Navigation",
+        settings.episodeNav.enabled,
+        getEpisodeNavIcon,
+        () => toggleSetting('episodeNav')
+      );
+      controlStack.appendChild(episodeNavToggle);
+    }
+  }
+
+  function toggleSetting(feature) {
+    if (!settings || !settings[feature]) return;
+    settings[feature].enabled = !settings[feature].enabled;
+    chrome.storage.sync.set({ [STORAGE_KEY]: settings });
+    showToast(`${feature === 'autoSkip' ? 'Auto-Skip' : 'Episode Nav'}: ${settings[feature].enabled ? 'ON' : 'OFF'}`);
+  }
+
   function injectNavButtonsToPlayer(prevHref, nextHref) {
     const controlStack = document.querySelector('[data-testid="bottom-right-controls-stack"]');
     if (!controlStack) return;
@@ -202,19 +271,23 @@
 
     // Create and inject prev button if href exists
     if (prevHref) {
-      prevButton = createNavButton("Previous Episode", prevHref, getPrevIcon());
+      prevButton = createNavButton("Previous Episode", prevHref, getPrevIcon(), () => {
+        showToast('Previous Episode');
+      });
       controlStack.insertBefore(prevButton, controlStack.firstChild);
     }
 
     // Create and inject next button if href exists, right after prev button
     if (nextHref) {
-      nextButton = createNavButton("Next Episode", nextHref, getNextIcon());
+      nextButton = createNavButton("Next Episode", nextHref, getNextIcon(), () => {
+        showToast('Next Episode');
+      });
       const insertAfter = prevButton ? prevButton.nextSibling : controlStack.firstChild;
       controlStack.insertBefore(nextButton, insertAfter);
     }
   }
 
-  function createNavButton(label, href, iconSvg) {
+  function createNavButton(label, href, iconSvg, onClickCallback) {
     const btn                      = document.createElement("button");
           btn.type                 = "button";
           btn.ariaLabel            = label;
@@ -233,6 +306,7 @@
 
     btn.addEventListener("click", (e) => {
       e.preventDefault();
+      if (onClickCallback) onClickCallback();
       window.location.href = href;
     });
 
@@ -247,6 +321,71 @@
     return btn;
   }
 
+  function createFeatureToggle(label, isEnabled, iconFn, onToggle) {
+    const btn                      = document.createElement("button");
+          btn.type                 = "button";
+          btn.ariaLabel            = label;
+          btn.style.background     = "none";
+          btn.style.border         = "none";
+          btn.style.cursor         = "pointer";
+          btn.style.padding        = "0 12px";
+          btn.style.margin         = "0";
+          btn.style.display        = "flex";
+          btn.style.alignItems     = "center";
+          btn.style.justifyContent = "center";
+          btn.style.width          = "auto";
+          btn.style.height         = "100%";
+          btn.style.transition     = "background-color 0.2s ease, opacity 0.2s ease";
+          btn.style.opacity        = isEnabled ? "1" : "0.5";
+          btn.innerHTML            = iconFn(isEnabled);
+
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      onToggle();
+    });
+
+    btn.addEventListener("mouseenter", () => {
+      btn.style.backgroundColor = "rgba(244, 117, 33, 0.15)";
+    });
+
+    btn.addEventListener("mouseleave", () => {
+      btn.style.backgroundColor = "none";
+    });
+
+    return btn;
+  }
+
+  function showToast(message) {
+    if (!toastContainer) {
+      toastContainer = document.createElement("div");
+      toastContainer.id = "cre-toast-container";
+      toastContainer.style.position = "fixed";
+      toastContainer.style.bottom = "20px";
+      toastContainer.style.left = "20px";
+      toastContainer.style.zIndex = "999999";
+      document.body.appendChild(toastContainer);
+    }
+
+    const toast = document.createElement("div");
+    toast.style.backgroundColor = "#f47521";
+    toast.style.color = "#ffffff";
+    toast.style.padding = "10px 16px";
+    toast.style.borderRadius = "4px";
+    toast.style.marginBottom = "10px";
+    toast.style.fontSize = "14px";
+    toast.style.fontWeight = "600";
+    toast.style.boxShadow = "0 2px 8px rgba(0,0,0,0.4)";
+    toast.style.animation = "fadeInUp 0.3s ease";
+    toast.textContent = message;
+
+    toastContainer.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.animation = "fadeOutDown 0.3s ease";
+      setTimeout(() => toast.remove(), 300);
+    }, 2000);
+  }
+
   function getPrevIcon() {
     return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width: 24px; height: 24px; fill: currentColor;">
       <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -259,7 +398,38 @@
     </svg>`;
   }
 
+  function getAutoSkipIcon(isEnabled) {
+    const opacity = isEnabled ? "1" : "0.5";
+    return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width: 24px; height: 24px; fill: currentColor; opacity: ${opacity};">
+      <path d="M9 3H15V9H9V3Z" stroke="currentColor" stroke-width="1.5" fill="none"></path>
+      <path d="M15 12L9 18M15 18L9 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+    </svg>`;
+  }
+
+  function getEpisodeNavIcon(isEnabled) {
+    const opacity = isEnabled ? "1" : "0.5";
+    return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width: 24px; height: 24px; fill: currentColor; opacity: ${opacity};">
+      <path d="M4 6H20V18H4V6Z" stroke="currentColor" stroke-width="1.5" fill="none"></path>
+      <path d="M9 10L14 13L9 16V10Z" fill="currentColor"></path>
+    </svg>`;
+  }
+
+  // Add CSS animations for toasts
+  (() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes fadeOutDown {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(20px); }
+      }
+    `;
+    document.head.appendChild(style);
+  })();
+
   loadSettings(() => {
     startAll();
   });
-})();
