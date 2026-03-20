@@ -43,7 +43,6 @@
   let autoSkipToggle   = null;
   let episodeNavToggle = null;
   let toastContainer   = null;
-  let extensionIndicator = null;
   let pendingActionMap = {};
 
   const STORAGE_KEY = "settings";
@@ -422,6 +421,9 @@
     const btn                      = document.createElement("button");
           btn.type                 = "button";
           btn.ariaLabel            = label;
+          btn.title                = label === "Previous Episode"
+            ? "Go to previous episode"
+            : "Go to next episode";
           btn.style.background     = "none";
           btn.style.border         = "none";
           btn.style.cursor         = "pointer";
@@ -698,6 +700,7 @@
     const btn                      = document.createElement("button");
           btn.type                 = "button";
           btn.ariaLabel            = label;
+          btn.title                = `${label} (${isEnabled ? "enabled" : "disabled"})`;
           btn.style.background     = "none";
           btn.style.border         = "none";
           btn.style.cursor         = "pointer";
@@ -714,6 +717,8 @@
 
     btn.addEventListener("click", (e) => {
       e.preventDefault();
+      isEnabled = !isEnabled;
+      btn.title = `${label} (${isEnabled ? "enabled" : "disabled"})`;
       onToggle();
     });
 
@@ -730,72 +735,55 @@
     return btn;
   }
 
-  function ensureExtensionIndicator() {
-    if (extensionIndicator) return;
-    extensionIndicator = document.createElement("div");
-    extensionIndicator.id = "cre-extension-indicator";
-    extensionIndicator.style.position = "fixed";
-    extensionIndicator.style.zIndex = "1000000";
-    extensionIndicator.style.pointerEvents = "none";
-    extensionIndicator.style.width = "18px";
-    extensionIndicator.style.height = "18px";
-    extensionIndicator.style.borderRadius = "50%";
-    extensionIndicator.style.display = "flex";
-    extensionIndicator.style.alignItems = "center";
-    extensionIndicator.style.justifyContent = "center";
-    extensionIndicator.style.opacity = "0";
-    extensionIndicator.style.transform = "translateY(4px)";
-    extensionIndicator.style.transition = "opacity 120ms ease, transform 120ms ease";
-    extensionIndicator.innerHTML = `<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width:16px;height:16px;display:block;">
-      <circle cx="8" cy="8" r="7" fill="#f47521"></circle>
-      <circle cx="6.7" cy="6.8" r="2.7" fill="#ffffff"></circle>
-      <circle cx="7.5" cy="6.8" r="1.45" fill="#f47521"></circle>
-      <circle cx="11.35" cy="11.35" r="2.55" fill="#ffffff"></circle>
-      <rect x="10.95" y="9.95" width="0.8" height="2.8" rx="0.35" fill="#f47521"></rect>
-      <rect x="9.95" y="10.95" width="2.8" height="0.8" rx="0.35" fill="#f47521"></rect>
-    </svg>`;
-    extensionIndicator.setAttribute("aria-hidden", "true");
-    document.body.appendChild(extensionIndicator);
-  }
-
-  function showExtensionIndicator(target) {
-    ensureExtensionIndicator();
-    const theme = settings.theme || {};
-    const rect  = target.getBoundingClientRect();
-    const top   = Math.max(8, rect.top - 22);
-    const left  = Math.max(8, rect.left);
-
-    extensionIndicator.style.top = `${Math.round(top)}px`;
-    extensionIndicator.style.left = `${Math.round(left)}px`;
-    extensionIndicator.style.backgroundColor = "transparent";
-    extensionIndicator.style.boxShadow = theme.toastBoxShadow || "0 4px 12px rgba(0,0,0,0.5)";
-    extensionIndicator.style.opacity = "1";
-    extensionIndicator.style.transform = "translateY(0)";
-  }
-
-  function hideExtensionIndicator() {
-    if (!extensionIndicator) return;
-    extensionIndicator.style.opacity = "0";
-    extensionIndicator.style.transform = "translateY(4px)";
-  }
-
   function attachExtensionIndicator(element, label) {
     const theme = settings.theme || {};
     const accent = theme.primaryColor || "#f47521";
     element.dataset.creInjected = "true";
 
+    if (!element.querySelector(".cre-corner-badge")) {
+      const computedPosition = window.getComputedStyle(element).position;
+      if (!computedPosition || computedPosition === "static") {
+        element.style.position = "relative";
+      }
+
+      const badge = document.createElement("span");
+      badge.className = "cre-corner-badge";
+      badge.setAttribute("aria-hidden", "true");
+      badge.style.position = "absolute";
+      badge.style.top = "2px";
+      badge.style.right = "2px";
+      badge.style.width = "11px";
+      badge.style.height = "11px";
+      badge.style.borderRadius = "50%";
+      badge.style.display = "flex";
+      badge.style.alignItems = "center";
+      badge.style.justifyContent = "center";
+      badge.style.pointerEvents = "none";
+      badge.style.zIndex = "2";
+      badge.style.backgroundColor = theme.onPrimaryColor || "#ffffff";
+      badge.style.boxShadow = `0 0 0 1px ${accent}`;
+      badge.innerHTML = `<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" style="width:9px;height:9px;display:block;" aria-hidden="true">
+        <circle cx="8" cy="8" r="7" fill="#f47521"></circle>
+        <circle cx="6.7" cy="6.8" r="2.7" fill="#ffffff"></circle>
+        <circle cx="7.5" cy="6.8" r="1.45" fill="#f47521"></circle>
+        <circle cx="11.35" cy="11.35" r="2.55" fill="#ffffff"></circle>
+        <rect x="10.95" y="9.95" width="0.8" height="2.8" rx="0.35" fill="#f47521"></rect>
+        <rect x="9.95" y="10.95" width="2.8" height="0.8" rx="0.35" fill="#f47521"></rect>
+      </svg>`;
+
+      element.appendChild(badge);
+    }
+
     element.addEventListener("mouseenter", () => {
       element.style.outline = `1px solid ${accent}`;
       element.style.outlineOffset = "-1px";
       element.style.boxShadow = `inset 0 0 0 1px ${accent}55`;
-      showExtensionIndicator(element);
     });
 
     element.addEventListener("mouseleave", () => {
       element.style.outline = "none";
       element.style.outlineOffset = "0";
       element.style.boxShadow = "none";
-      hideExtensionIndicator();
     });
   }
 
