@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "Crunchyroll Enhancer",
-  "version": "1.0.0",
-  "description": "Auto-skip intros/credits and add Next/Previous episode buttons to Crunchyroll.",
-  "permissions": ["storage"],
+  "name"            : "Crunchy+",
+  "version"         : "1.0.0",
+  "description"     : "Crunchy+",
+  "permissions"     : ["storage"],
   "host_permissions": ["https://www.crunchyroll.com/*"],
-  "action": {
+  "action"          : {
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon16.png",

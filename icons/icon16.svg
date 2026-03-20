@@ -1,4 +1,18 @@
 <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'>
-  <rect width='16' height='16' rx='2.4' fill='#f47521'/>
-  <text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-family='Arial,sans-serif' font-weight='bold' font-size='8.8' fill='white'>C</text>
+  <defs>
+    <linearGradient id='bg' x1='0' y1='0' x2='1' y2='1'>
+      <stop offset='0%' stop-color='#ff9a3d'/>
+      <stop offset='100%' stop-color='#f47521'/>
+    </linearGradient>
+  </defs>
+
+  <rect x='0.5' y='0.5' width='15' height='15' rx='4' fill='url(#bg)'/>
+
+  <circle cx='7.2' cy='7.2' r='3.8' fill='white' opacity='0.98'/>
+  <circle cx='8.3' cy='7.2' r='2.1' fill='#f47521'/>
+  <circle cx='9.7' cy='5.9' r='0.8' fill='white' opacity='0.95'/>
+
+  <circle cx='12.1' cy='12.1' r='2.4' fill='white'/>
+  <rect x='11.6' y='10.7' width='1' height='2.8' rx='0.45' fill='#f47521'/>
+  <rect x='10.7' y='11.6' width='2.8' height='1' rx='0.45' fill='#f47521'/>
 </svg>

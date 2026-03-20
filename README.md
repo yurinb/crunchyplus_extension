@@ -1,6 +1,6 @@
-# Crunchyroll Enhancer — Chrome Extension
+# Crunchy+ — Chrome Extension
 
-A Chrome Extension that improves the Crunchyroll viewing experience with auto-skip and episode navigation.
+Crunchy+ is a Chrome Extension that improves the Crunchyroll viewing experience with auto-skip and episode navigation.
 
 ## Features
 
