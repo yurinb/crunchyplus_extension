@@ -57,6 +57,12 @@ header {
   display: block;
 }
 
+.header-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .github-link {
   width: 28px;
   height: 28px;
@@ -160,6 +166,39 @@ main {
   overflow: hidden;
 }
 
+.support-block {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0;
+}
+
+.bmc-link {
+  display        : inline-flex;
+  align-items    : center;
+  justify-content: center;
+  width          : 30px;
+  height         : 30px;
+  border-radius  : 999px;
+  color          : #ffd54a;
+  background     : color-mix(in srgb, #ffd54a 12%, var(--surface) 88%);
+  border         : 1px solid color-mix(in srgb, #ffd54a 35%, var(--border) 65%);
+  text-decoration: none;
+  transition     : transform 0.15s, background-color 0.15s, border-color 0.15s;
+}
+
+.bmc-link svg {
+  width: 17px;
+  height: 17px;
+}
+
+.bmc-link:hover,
+.bmc-link:focus-visible {
+  transform: translateY(-1px);
+  background: color-mix(in srgb, #ffd54a 20%, var(--surface) 80%);
+  border-color: #ffd54a;
+  outline: none;
+}
+
 .feature-header {
   display: flex;
   align-items: center;
@@ -167,39 +206,6 @@ main {
   padding: 12px 14px 10px;
 }
 
-.feature-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.feature-icon {
-  font-size: 16px;
-}
-
-.info-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--theme-hover-bg);
-  color: var(--orange);
-  font-size: 10px;
-  font-weight: 700;
-  cursor: help;
-  margin-left: 4px;
-  opacity: 0.6;
-  transition: opacity 0.2s;
-}
-
-.info-icon:hover {
-  opacity: 1;
-  background: var(--theme-hover-bg);
-}
 
 .feature-desc {
   font-size: 12px;

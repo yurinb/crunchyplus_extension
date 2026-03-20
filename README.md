@@ -40,6 +40,12 @@ Settings apply immediately on the page.
 - If you changed options, click **Save Settings** before closing the popup.
 - Keep Auto-Skip enabled for the smoothest playback experience.
 
+## Support
+
+If Crunchy+ helps your viewing experience, you can support the project:
+
+[![Buy Me a Coffee](https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=yurinb&button_colour=FFDD00&font_colour=000000&font_family=Comic&outline_colour=000000&coffee_colour=ffffff)](https://www.buymeacoffee.com/yurinb)
+
 ## Privacy
 
 Crunchy+ runs only on Crunchyroll pages and stores your preferences locally in browser extension storage.
