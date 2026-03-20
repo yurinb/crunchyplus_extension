@@ -36,12 +36,17 @@
   let skipCooldownMap  = {};
   let navDebounceTimer = null;
   let navObserver      = null;
+  let controlsObserver = null;
   let lastNextHref     = null;
   let lastPrevHref     = null;
   let prevButton       = null;
   let nextButton       = null;
   let autoSkipToggle   = null;
   let episodeNavToggle = null;
+  let extensionActionsContainer = null;
+  let navActionsGroup = null;
+  let toggleActionsGroup = null;
+  let actionsSeparator = null;
   let toastContainer   = null;
   let pendingActionMap = {};
 
@@ -189,12 +194,15 @@
 
   function restartAll() {
     stopAutoSkip();
+    stopControlsObserver();
     removeNavOverlay();
     startAll();
   }
 
   function startAll() {
     if (!settings) return;
+
+    startControlsObserver();
 
     // Keep extension toggles available regardless of nav state.
     injectFeatureToggles();
@@ -205,6 +213,31 @@
     if (settings.episodeNav && settings.episodeNav.enabled) {
       startEpisodeNav();
     }
+  }
+
+  function startControlsObserver() {
+    if (controlsObserver) return;
+
+    controlsObserver = new MutationObserver(() => {
+      const controlStack = document.querySelector('[data-testid="bottom-right-controls-stack"]');
+      if (!controlStack) return;
+
+      const container = controlStack.querySelector("#cre-actions-container");
+      const hasAuto = !!container?.querySelector('[data-cre-action="autoSkipToggle"]');
+      const hasNav = !!container?.querySelector('[data-cre-action="episodeNavToggle"]');
+
+      if (!hasAuto || !hasNav) {
+        injectFeatureToggles();
+      }
+    });
+
+    controlsObserver.observe(document.body, { childList: true, subtree: true });
+  }
+
+  function stopControlsObserver() {
+    if (!controlsObserver) return;
+    controlsObserver.disconnect();
+    controlsObserver = null;
   }
 
   function stopAutoSkip() {
@@ -288,8 +321,104 @@
       nextButton.remove();
       nextButton = null;
     }
+    updateActionsContainerLayout();
     lastNextHref = null;
     lastPrevHref = null;
+  }
+
+  function ensureActionsContainer() {
+    const controlStack = document.querySelector('[data-testid="bottom-right-controls-stack"]');
+    if (!controlStack) return null;
+
+    if (!extensionActionsContainer || !controlStack.contains(extensionActionsContainer)) {
+      extensionActionsContainer = document.createElement("div");
+      extensionActionsContainer.id = "cre-actions-container";
+      controlStack.insertBefore(extensionActionsContainer, controlStack.firstChild);
+
+      const containerBadge = document.createElement("span");
+      containerBadge.className = "cre-container-badge";
+      containerBadge.setAttribute("aria-hidden", "true");
+      containerBadge.style.position = "absolute";
+      containerBadge.style.top = "-4px";
+      containerBadge.style.right = "-4px";
+      containerBadge.style.width = "12px";
+      containerBadge.style.height = "12px";
+      containerBadge.style.borderRadius = "50%";
+      containerBadge.style.display = "flex";
+      containerBadge.style.alignItems = "center";
+      containerBadge.style.justifyContent = "center";
+      containerBadge.style.pointerEvents = "none";
+      containerBadge.style.zIndex = "3";
+      containerBadge.innerHTML = `<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" style="width:10px;height:10px;display:block;" aria-hidden="true">
+        <circle cx="8" cy="8" r="7" fill="#f47521"></circle>
+        <circle cx="6.7" cy="6.8" r="2.7" fill="#ffffff"></circle>
+        <circle cx="7.5" cy="6.8" r="1.45" fill="#f47521"></circle>
+        <circle cx="11.35" cy="11.35" r="2.55" fill="#ffffff"></circle>
+        <rect x="10.95" y="9.95" width="0.8" height="2.8" rx="0.35" fill="#f47521"></rect>
+        <rect x="9.95" y="10.95" width="2.8" height="0.8" rx="0.35" fill="#f47521"></rect>
+      </svg>`;
+
+      navActionsGroup = document.createElement("div");
+      navActionsGroup.id = "cre-nav-actions-group";
+
+      actionsSeparator = document.createElement("div");
+      actionsSeparator.id = "cre-actions-separator";
+
+      toggleActionsGroup = document.createElement("div");
+      toggleActionsGroup.id = "cre-toggle-actions-group";
+
+      extensionActionsContainer.appendChild(navActionsGroup);
+      extensionActionsContainer.appendChild(actionsSeparator);
+      extensionActionsContainer.appendChild(toggleActionsGroup);
+      extensionActionsContainer.appendChild(containerBadge);
+    }
+
+    const theme = settings.theme || {};
+    const accent = theme.primaryColor || "#f47521";
+
+    extensionActionsContainer.style.display = "inline-flex";
+    extensionActionsContainer.style.alignItems = "center";
+    extensionActionsContainer.style.position = "relative";
+    extensionActionsContainer.style.height = "100%";
+    extensionActionsContainer.style.padding = "0 16px 0 4px";
+    extensionActionsContainer.style.marginRight = "6px";
+    extensionActionsContainer.style.borderRadius = "999px";
+    extensionActionsContainer.style.backgroundColor = getHoverBgColor();
+    extensionActionsContainer.style.border = `1px solid ${accent}33`;
+    extensionActionsContainer.style.pointerEvents = "auto";
+    extensionActionsContainer.style.overflow = "visible";
+
+    const containerBadge = extensionActionsContainer.querySelector(".cre-container-badge");
+    if (containerBadge) {
+      containerBadge.style.backgroundColor = theme.onPrimaryColor || "#ffffff";
+      containerBadge.style.boxShadow = `0 0 0 1px ${accent}`;
+    }
+
+    [navActionsGroup, toggleActionsGroup].forEach((group) => {
+      group.style.display = "inline-flex";
+      group.style.alignItems = "center";
+      group.style.height = "100%";
+      group.style.gap = "0";
+      group.style.overflow = "hidden";
+    });
+
+    actionsSeparator.style.width = "1px";
+    actionsSeparator.style.height = "58%";
+    actionsSeparator.style.margin = "0 3px";
+    actionsSeparator.style.backgroundColor = `${accent}66`;
+
+    updateActionsContainerLayout();
+    return controlStack;
+  }
+
+  function updateActionsContainerLayout() {
+    if (!extensionActionsContainer || !navActionsGroup || !toggleActionsGroup || !actionsSeparator) return;
+
+    const hasNavActions = navActionsGroup.childElementCount > 0;
+    const hasToggleActions = toggleActionsGroup.childElementCount > 0;
+
+    actionsSeparator.style.display = hasNavActions && hasToggleActions ? "block" : "none";
+    extensionActionsContainer.style.display = hasNavActions || hasToggleActions ? "inline-flex" : "none";
   }
 
   function startEpisodeNav() {
@@ -335,44 +464,70 @@
 
     if (nextHref === lastNextHref && prevHref === lastPrevHref) return;
 
+    const injected = injectNavButtonsToPlayer(prevHref, nextHref);
+    if (!injected) {
+      // Player controls might not be mounted yet; retry without freezing href cache.
+      scheduleNavUpdate();
+      return;
+    }
+
     lastNextHref = nextHref;
     lastPrevHref = prevHref;
-
-    injectNavButtonsToPlayer(prevHref, nextHref);
   }
 
   function injectFeatureToggles() {
-    const controlStack = document.querySelector('[data-testid="bottom-right-controls-stack"]');
-    if (!controlStack) return;
-
-        // Remove old toggles if they exist
-    if (autoSkipToggle && controlStack.contains(autoSkipToggle)) autoSkipToggle.remove();
-    if (episodeNavToggle && controlStack.contains(episodeNavToggle)) episodeNavToggle.remove();
-
-    autoSkipToggle   = null;
-    episodeNavToggle = null;
+    const controlStack = ensureActionsContainer();
+    if (!controlStack || !toggleActionsGroup) return false;
 
         // Create auto-skip toggle
     if (settings && settings.autoSkip) {
-      autoSkipToggle = createFeatureToggle(
-        "Toggle Auto-Skip",
-        settings.autoSkip.enabled,
-        getAutoSkipIcon,
-        () => toggleSetting('autoSkip')
-      );
-      controlStack.appendChild(autoSkipToggle);
+      if (!autoSkipToggle || !toggleActionsGroup.contains(autoSkipToggle)) {
+        autoSkipToggle = createFeatureToggle(
+          "Toggle Auto-Skip",
+          settings.autoSkip.enabled,
+          getAutoSkipIcon,
+          () => toggleSetting('autoSkip')
+        );
+        autoSkipToggle.dataset.creAction = "autoSkipToggle";
+        toggleActionsGroup.appendChild(autoSkipToggle);
+      } else {
+        syncFeatureToggleVisual(autoSkipToggle, "Toggle Auto-Skip", settings.autoSkip.enabled, getAutoSkipIcon);
+      }
+    } else if (autoSkipToggle) {
+      autoSkipToggle.remove();
+      autoSkipToggle = null;
     }
 
         // Create episode nav toggle
     if (settings && settings.episodeNav) {
-      episodeNavToggle = createFeatureToggle(
-        "Toggle Episode Navigation",
-        settings.episodeNav.enabled,
-        getEpisodeNavIcon,
-        () => toggleSetting('episodeNav')
-      );
-      controlStack.appendChild(episodeNavToggle);
+      if (!episodeNavToggle || !toggleActionsGroup.contains(episodeNavToggle)) {
+        episodeNavToggle = createFeatureToggle(
+          "Toggle Episode Navigation",
+          settings.episodeNav.enabled,
+          getEpisodeNavIcon,
+          () => toggleSetting('episodeNav')
+        );
+        episodeNavToggle.dataset.creAction = "episodeNavToggle";
+        toggleActionsGroup.appendChild(episodeNavToggle);
+      } else {
+        syncFeatureToggleVisual(episodeNavToggle, "Toggle Episode Navigation", settings.episodeNav.enabled, getEpisodeNavIcon);
+      }
+    } else if (episodeNavToggle) {
+      episodeNavToggle.remove();
+      episodeNavToggle = null;
     }
+
+    updateActionsContainerLayout();
+    return true;
+  }
+
+  function syncFeatureToggleVisual(button, label, isEnabled, iconFn) {
+    if (!button) return;
+    const theme = settings.theme || {};
+    const disabledOpacity = theme.disabledOpacity || "0.5";
+    button.style.opacity = isEnabled ? "1" : disabledOpacity;
+    button.title = `${label} (${isEnabled ? "enabled" : "disabled"})`;
+    button.innerHTML = iconFn(isEnabled);
   }
 
   function toggleSetting(feature) {
@@ -383,12 +538,12 @@
   }
 
   function injectNavButtonsToPlayer(prevHref, nextHref) {
-    const controlStack = document.querySelector('[data-testid="bottom-right-controls-stack"]');
-    if (!controlStack) return;
+    const controlStack = ensureActionsContainer();
+    if (!controlStack || !navActionsGroup) return false;
 
         // Remove old buttons if they exist
-    if (prevButton && controlStack.contains(prevButton)) prevButton.remove();
-    if (nextButton && controlStack.contains(nextButton)) nextButton.remove();
+    if (prevButton && navActionsGroup.contains(prevButton)) prevButton.remove();
+    if (nextButton && navActionsGroup.contains(nextButton)) nextButton.remove();
 
     prevButton = null;
     nextButton = null;
@@ -396,15 +551,17 @@
         // Create and inject prev button if href exists
     if (prevHref) {
       prevButton = createNavButton("Previous Episode", prevHref, getPrevIcon());
-      controlStack.insertBefore(prevButton, controlStack.firstChild);
+      navActionsGroup.appendChild(prevButton);
     }
 
         // Create and inject next button if href exists, right after prev button
     if (nextHref) {
       nextButton = createNavButton("Next Episode", nextHref, getNextIcon());
-      const insertAfter = prevButton ? prevButton.nextSibling : controlStack.firstChild;
-      controlStack.insertBefore(nextButton, insertAfter);
+      navActionsGroup.appendChild(nextButton);
     }
+
+    updateActionsContainerLayout();
+    return true;
   }
 
   function createNavButton(label, href, iconSvg, onClickCallback) {
@@ -429,6 +586,8 @@
           btn.style.justifyContent = "center";
           btn.style.width          = "auto";
           btn.style.height         = "100%";
+          btn.style.borderRadius   = "999px";
+          btn.style.overflow       = "hidden";
           btn.style.transition     = `background-color ${transitionMs}ms ease`;
           btn.innerHTML            = iconSvg;
 
@@ -706,6 +865,8 @@
           btn.style.justifyContent = "center";
           btn.style.width          = "auto";
           btn.style.height         = "100%";
+          btn.style.borderRadius   = "999px";
+          btn.style.overflow       = "hidden";
           btn.style.transition     = `background-color ${transitionMs}ms ease, opacity ${transitionMs}ms ease`;
           btn.style.opacity        = isEnabled ? "1" : disabledOpacity;
           btn.innerHTML            = iconFn(isEnabled);
@@ -731,55 +892,7 @@
   }
 
   function attachExtensionIndicator(element, label) {
-    const theme = settings.theme || {};
-    const accent = theme.primaryColor || "#f47521";
     element.dataset.creInjected = "true";
-
-    if (!element.querySelector(".cre-corner-badge")) {
-      const computedPosition = window.getComputedStyle(element).position;
-      if (!computedPosition || computedPosition === "static") {
-        element.style.position = "relative";
-      }
-
-      const badge = document.createElement("span");
-      badge.className = "cre-corner-badge";
-      badge.setAttribute("aria-hidden", "true");
-      badge.style.position = "absolute";
-      badge.style.top = "2px";
-      badge.style.right = "2px";
-      badge.style.width = "11px";
-      badge.style.height = "11px";
-      badge.style.borderRadius = "50%";
-      badge.style.display = "flex";
-      badge.style.alignItems = "center";
-      badge.style.justifyContent = "center";
-      badge.style.pointerEvents = "none";
-      badge.style.zIndex = "2";
-      badge.style.backgroundColor = theme.onPrimaryColor || "#ffffff";
-      badge.style.boxShadow = `0 0 0 1px ${accent}`;
-      badge.innerHTML = `<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" style="width:9px;height:9px;display:block;" aria-hidden="true">
-        <circle cx="8" cy="8" r="7" fill="#f47521"></circle>
-        <circle cx="6.7" cy="6.8" r="2.7" fill="#ffffff"></circle>
-        <circle cx="7.5" cy="6.8" r="1.45" fill="#f47521"></circle>
-        <circle cx="11.35" cy="11.35" r="2.55" fill="#ffffff"></circle>
-        <rect x="10.95" y="9.95" width="0.8" height="2.8" rx="0.35" fill="#f47521"></rect>
-        <rect x="9.95" y="10.95" width="2.8" height="0.8" rx="0.35" fill="#f47521"></rect>
-      </svg>`;
-
-      element.appendChild(badge);
-    }
-
-    element.addEventListener("mouseenter", () => {
-      element.style.outline = `1px solid ${accent}`;
-      element.style.outlineOffset = "-1px";
-      element.style.boxShadow = `inset 0 0 0 1px ${accent}55`;
-    });
-
-    element.addEventListener("mouseleave", () => {
-      element.style.outline = "none";
-      element.style.outlineOffset = "0";
-      element.style.boxShadow = "none";
-    });
   }
 
   function showToast(message) {
