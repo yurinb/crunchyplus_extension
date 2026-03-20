@@ -3,12 +3,13 @@
 
   let settings          = null;
   let autoSkipInterval  = null;
-  let navOverlay        = null;
-  let navObserver       = null;
   let skipCooldownUntil = 0;
   let navDebounceTimer  = null;
+  let navObserver       = null;
   let lastNextHref      = null;
   let lastPrevHref      = null;
+  let prevButton        = null;
+  let nextButton        = null;
 
   const STORAGE_KEY      = "settings";
   const SKIP_COOLDOWN_MS = 3000;
@@ -127,26 +128,20 @@
       navObserver.disconnect();
       navObserver = null;
     }
-    if (navOverlay) {
-      navOverlay.remove();
-      navOverlay = null;
+    if (prevButton) {
+      prevButton.remove();
+      prevButton = null;
+    }
+    if (nextButton) {
+      nextButton.remove();
+      nextButton = null;
     }
     lastNextHref = null;
     lastPrevHref = null;
   }
 
   function startEpisodeNav() {
-    if (!navOverlay) {
-      navOverlay    = document.createElement("div");
-      navOverlay.id = "cre-nav-overlay";
-      applyOverlayStyle();
-      document.body.appendChild(navOverlay);
-    }
-
     navObserver = new MutationObserver((mutations) => {
-      for (const m of mutations) {
-        if (m.target === navOverlay || navOverlay.contains(m.target)) return;
-      }
       scheduleNavUpdate();
     });
 
@@ -160,41 +155,11 @@
     navDebounceTimer = setTimeout(updateNavOverlay, NAV_DEBOUNCE_MS);
   }
 
-  function applyOverlayStyle() {
-    if (!navOverlay) return;
-    const pos = 
-      settings &&
-        settings.episodeNav &&
-        settings.episodeNav.buttonStyle &&
-        settings.episodeNav.buttonStyle.position
-        ? settings.episodeNav.buttonStyle.position
-        :   "bottom-right";
-
-    const posMap = {
-      "bottom-right": { bottom: "80px", right: "20px", top: "auto", left: "auto" },
-      "bottom-left" : { bottom: "80px", left: "20px", top: "auto", right: "auto" },
-      "top-right"   : { top: "80px", right: "20px", bottom: "auto", left: "auto" },
-      "top-left"    : { top: "80px", left: "20px", bottom: "auto", right: "auto" }
-    };
-    const coords = posMap[pos] || posMap["bottom-right"];
-
-    Object.assign(navOverlay.style, {
-      position     : "fixed",
-      zIndex       : "999999",
-      display      : "flex",
-      flexDirection: "column",
-      gap          : "8px",
-      pointerEvents: "none",
-      ...coords
-    });
-  }
-
   function resolveLink(selector) {
     if (!selector) return null;
     try {
       const candidates = document.querySelectorAll(selector);
       for (const el of candidates) {
-        if (el === navOverlay || navOverlay.contains(el)) continue;
         if (el.href && isEpisodeLink(el)) return el.href;
       }
     } catch (_) { }
@@ -211,7 +176,7 @@
   }
 
   function updateNavOverlay() {
-    if (!navOverlay || !settings || !settings.episodeNav) return;
+    if (!settings || !settings.episodeNav) return;
 
     const nextHref = resolveLink(settings.episodeNav.nextSelector);
     const prevHref = resolveLink(settings.episodeNav.prevSelector);
@@ -221,47 +186,68 @@
     lastNextHref = nextHref;
     lastPrevHref = prevHref;
 
-    if (navObserver) navObserver.disconnect();
+    injectNavButtonsToPlayer(prevHref, nextHref);
+  }
 
-    navOverlay.innerHTML = "";
-    applyOverlayStyle();
+  function injectNavButtonsToPlayer(prevHref, nextHref) {
+    const controlStack = document.querySelector('[data-testid="bottom-right-controls-stack"]');
+    if (!controlStack) return;
 
-    const btnStyle = settings.episodeNav.buttonStyle || {};
-    if (prevHref) navOverlay.appendChild(makeButton("◀ Previous Episode", prevHref, btnStyle));
-    if (nextHref) navOverlay.appendChild(makeButton("Next Episode ▶", nextHref, btnStyle));
+    // Remove old buttons if they exist
+    if (prevButton && controlStack.contains(prevButton)) prevButton.remove();
+    if (nextButton && controlStack.contains(nextButton)) nextButton.remove();
 
-    if (navObserver) {
-      navObserver.observe(document.body, { childList: true, subtree: true });
+    prevButton = null;
+    nextButton = null;
+
+    // Create and inject prev button if href exists
+    if (prevHref) {
+      prevButton = createNavButton("Previous Episode", prevHref, getPrevIcon());
+      controlStack.insertBefore(prevButton, controlStack.firstChild);
+    }
+
+    // Create and inject next button if href exists, right after prev button
+    if (nextHref) {
+      nextButton = createNavButton("Next Episode", nextHref, getNextIcon());
+      const insertAfter = prevButton ? prevButton.nextSibling : controlStack.firstChild;
+      controlStack.insertBefore(nextButton, insertAfter);
     }
   }
 
-  function makeButton(label, href, btnStyle) {
-    const btn             = document.createElement("a");
-          btn.href        = href;
-          btn.textContent = label;
-          btn.target      = "_self";
-    Object.assign(btn.style, {
-      backgroundColor: btnStyle.backgroundColor || "#f47521",
-      color          : btnStyle.color || "#ffffff",
-      fontSize       : btnStyle.fontSize || "14px",
-      padding        : btnStyle.padding || "8px 16px",
-      borderRadius   : btnStyle.borderRadius || "4px",
-      fontWeight     : btnStyle.fontWeight || "600",
-      opacity        : btnStyle.opacity || "0.9",
-      textDecoration : "none",
-      display        : "inline-block",
-      cursor         : "pointer",
-      pointerEvents  : "auto",
-      fontFamily     : "inherit",
-      lineHeight     : "1.4",
-      boxShadow      : "0 2px 8px rgba(0,0,0,0.4)",
-      transition     : "opacity 0.15s",
-      userSelect     : "none"
-      
+  function createNavButton(label, href, iconSvg) {
+    const btn                      = document.createElement("button");
+          btn.type                 = "button";
+          btn.ariaLabel            = label;
+          btn.style.background     = "none";
+          btn.style.border         = "none";
+          btn.style.cursor         = "pointer";
+          btn.style.padding        = "0";
+          btn.style.margin         = "0";
+          btn.style.display        = "flex";
+          btn.style.alignItems     = "center";
+          btn.style.justifyContent = "center";
+          btn.style.width          = "36px";
+          btn.style.height         = "36px";
+          btn.innerHTML            = iconSvg;
+
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.location.href = href;
     });
-    btn.addEventListener("mouseenter", () => { btn.style.opacity = "1"; });
-    btn.addEventListener("mouseleave", () => { btn.style.opacity = btnStyle.opacity || "0.9"; });
+
     return btn;
+  }
+
+  function getPrevIcon() {
+    return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width: 24px; height: 24px; fill: currentColor;">
+      <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>`;
+  }
+
+  function getNextIcon() {
+    return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width: 24px; height: 24px; fill: currentColor;">
+      <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>`;
   }
 
   loadSettings(() => {
